@@ -17935,7 +17935,7 @@ var _k = {
   "application/avro": "avro"
 };
 new Set(Object.keys(_k));
-const Ak = { search: !0, print: !0, download: !0 };
+const Ak = { zoom: !0, search: !0, print: !0, download: !0, fullscreen: !1 };
 function $8(e) {
   return b2({ ...e, toolbar: Ak, plugins: [__()] });
 }

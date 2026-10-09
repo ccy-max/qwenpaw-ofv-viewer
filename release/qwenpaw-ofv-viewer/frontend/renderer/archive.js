@@ -8045,7 +8045,7 @@ var lu = {
   "application/avro": "avro"
 };
 new Set(Object.keys(lu));
-const cu = { download: !0 };
+const cu = { download: !0, fullscreen: !1 };
 function Su(e) {
   return td({ ...e, toolbar: cu, plugins: [Zd()] });
 }

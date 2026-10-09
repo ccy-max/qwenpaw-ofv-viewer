@@ -6095,7 +6095,7 @@ var Ns = {
   "application/avro": "avro"
 };
 new Set(Object.keys(Ns));
-const Os = { search: !0, download: !0 };
+const Os = { search: !0, download: !0, fullscreen: !1 };
 function dc(e) {
   return Ro({ ...e, toolbar: Os, plugins: [_s()] });
 }

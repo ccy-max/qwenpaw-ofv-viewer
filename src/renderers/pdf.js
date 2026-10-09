@@ -7,7 +7,7 @@ const WORKER_SRC =
 
 // PDF 工具栏：缩放 + 搜索 + 打印 + 下载（翻页由抽屉页码导航条承担，
 // 全屏用抽屉自己的按钮；rotate 对纯 PDF 意义不大）
-const TOOLBAR = { search: true, print: true, download: true };
+const TOOLBAR = { zoom: true, search: true, print: true, download: true, fullscreen: false };
 
 export function renderViewer(opts) {
   return createViewer({

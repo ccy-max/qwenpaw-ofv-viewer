@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.6.1";
+  const VERSION = "0.6.2";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 

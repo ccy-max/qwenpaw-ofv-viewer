@@ -6889,7 +6889,7 @@ var _o = {
   "application/avro": "avro"
 };
 new Set(Object.keys(_o));
-const yo = { search: !0, download: !0 };
+const yo = { search: !0, download: !0, fullscreen: !1 };
 function Fo(t) {
   return Ji({ ...t, toolbar: yo, plugins: [Ya()] });
 }

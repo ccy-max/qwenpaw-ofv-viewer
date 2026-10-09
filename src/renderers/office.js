@@ -3,7 +3,7 @@ import { createViewer, officePlugin } from "@open-file-viewer/core";
 import "@open-file-viewer/core/style.css";
 
 // 工具栏：按格式族定制（OFV 默认 toolbar=false，不传就没有工具栏）
-const TOOLBAR = { search: true, print: true, download: true };
+const TOOLBAR = { zoom: true, search: true, print: true, download: true, fullscreen: false };
 
 export function renderViewer(opts) {
   return createViewer({ ...opts, toolbar: TOOLBAR, plugins: [officePlugin()] });

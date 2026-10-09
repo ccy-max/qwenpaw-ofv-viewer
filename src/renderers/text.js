@@ -3,7 +3,7 @@ import { createViewer, textPlugin } from "@open-file-viewer/core";
 import "@open-file-viewer/core/style.css";
 
 // 代码/文本：搜索 + 下载（换行/复制由 OFV 文本面板自带）
-const TOOLBAR = { search: true, download: true };
+const TOOLBAR = { search: true, download: true, fullscreen: false };
 
 export function renderViewer(opts) {
   return createViewer({ ...opts, toolbar: TOOLBAR, plugins: [textPlugin()] });
