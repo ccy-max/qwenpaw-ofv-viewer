@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.6.0";
+  const VERSION = "0.6.1";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -362,14 +362,17 @@
          与「在聊天中引用」同一行；此处统一其外观与标题栏按钮一致 */
       "[data-qp-ofv-overlay] .ofv-code-action,",
       "[data-qp-ofv-hoisted].ofv-code-action {",
-      "  display: inline-flex; align-items: center; gap: 5px;",
-      "  height: 28px; padding: 0 10px; font-size: 12.5px;",
+      "  display: inline-flex; align-items: center; gap: 6px;",
+      "  height: 28px; padding: 0 11px; font-size: 12.5px;",
       "  border: 1px solid #e2e8f0; background: #fff; color: #334155;",
       "  border-radius: 6px; cursor: pointer; line-height: 1;",
+      "  margin-left: 8px;",
       "}",
       "[data-qp-ofv-hoisted].ofv-code-action:hover { background: #f1f5f9; }",
+      /* 搬运后：三个文字按钮自成一组，与右侧图标按钮（全屏/关闭）拉开距 */
+      "[data-qp-ofv-hoisted].ofv-code-action:last-of-type { margin-right: 16px; }",
       "[data-qp-ofv-overlay] .ofv-code-action::before {",
-      "  font-size: 11px; line-height: 1; font-style: normal;",
+      "  font-size: 11.5px; line-height: 1; font-style: normal;",
       "  margin-top: -0.5px;",
       "  display: inline-block;",
       "}",

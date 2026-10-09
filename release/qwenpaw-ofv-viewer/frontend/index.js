@@ -1,5 +1,5 @@
 (() => {
-  const M = "0.6.0", L = "[ofv-viewer]", Q = "qwenpaw-ofv-viewer", T = /* @__PURE__ */ new Set([
+  const M = "0.6.1", L = "[ofv-viewer]", Q = "qwenpaw-ofv-viewer", T = /* @__PURE__ */ new Set([
     // pdf（v0.4.0 接管）
     "pdf",
     // office（含老格式，原生都不支持）
@@ -49,8 +49,8 @@
     "sql",
     "xml"
   ]), W = (() => {
-    const t = {}, e = (n, c) => c.forEach((r) => t[r] = n);
-    return e("office", ["docx", "docm", "dotx", "dotm", "rtf", "odt", "fodt"]), e("sheet", ["xlsx", "xlsm", "xlsb", "xls", "ods", "fods"]), e("ppt", ["pptx", "pptm", "ppsx", "ppsm", "potx", "potm", "odp", "fodp"]), e("legacy", ["doc", "dot", "ppt", "pps"]), e("pdf", ["pdf"]), e("archive", ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"]), e("email", ["eml", "msg", "mbox"]), e("plain", ["txt", "log", "conf", "ini", "env", "properties", "md"]), e("text", [
+    const e = {}, t = (n, c) => c.forEach((r) => e[r] = n);
+    return t("office", ["docx", "docm", "dotx", "dotm", "rtf", "odt", "fodt"]), t("sheet", ["xlsx", "xlsm", "xlsb", "xls", "ods", "fods"]), t("ppt", ["pptx", "pptm", "ppsx", "ppsm", "potx", "potm", "odp", "fodp"]), t("legacy", ["doc", "dot", "ppt", "pps"]), t("pdf", ["pdf"]), t("archive", ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"]), t("email", ["eml", "msg", "mbox"]), t("plain", ["txt", "log", "conf", "ini", "env", "properties", "md"]), t("text", [
       "json",
       "yaml",
       "yml",
@@ -81,40 +81,40 @@
       "tf",
       "dockerfile",
       "makefile"
-    ]), t;
-  })(), q = (...t) => {
+    ]), e;
+  })(), q = (...e) => {
     try {
-      console.log(L, M, ...t);
+      console.log(L, M, ...e);
     } catch {
     }
-  }, k = (...t) => {
+  }, k = (...e) => {
     try {
-      console.error(L, M, ...t);
+      console.error(L, M, ...e);
     } catch {
     }
   };
-  function U(t) {
-    const e = /\.([^.]+)$/.exec(String(t || ""));
-    return e ? e[1].toLowerCase() : "";
+  function U(e) {
+    const t = /\.([^.]+)$/.exec(String(e || ""));
+    return t ? t[1].toLowerCase() : "";
   }
-  function B(t) {
-    const e = String(t || ""), n = Math.max(e.lastIndexOf("/"), e.lastIndexOf("\\"));
-    return n >= 0 ? e.slice(n + 1) : e;
+  function B(e) {
+    const t = String(e || ""), n = Math.max(t.lastIndexOf("/"), t.lastIndexOf("\\"));
+    return n >= 0 ? t.slice(n + 1) : t;
   }
-  function N(t) {
-    let e = String(t || "").trim();
-    if (!e) return "";
-    e.toLowerCase().startsWith("file://") && (e = e.slice(7), e.toLowerCase().startsWith("localhost/") && (e = e.slice(10))), e.startsWith("/files/preview/") && (e = e.slice(14));
+  function N(e) {
+    let t = String(e || "").trim();
+    if (!t) return "";
+    t.toLowerCase().startsWith("file://") && (t = t.slice(7), t.toLowerCase().startsWith("localhost/") && (t = t.slice(10))), t.startsWith("/files/preview/") && (t = t.slice(14));
     try {
-      e = decodeURIComponent(e).replace(/\\/g, "/");
+      t = decodeURIComponent(t).replace(/\\/g, "/");
     } catch {
     }
-    return e;
+    return t;
   }
-  function G(t) {
-    const e = String(t || ""), n = "/files/preview/", c = e.indexOf(n);
+  function G(e) {
+    const t = String(e || ""), n = "/files/preview/", c = t.indexOf(n);
     if (c < 0) return "";
-    const r = e.slice(c + n.length).split(/[?#]/, 1)[0];
+    const r = t.slice(c + n.length).split(/[?#]/, 1)[0];
     if (!r) return "";
     try {
       const s = decodeURIComponent(r).replace(/\\/g, "/");
@@ -123,32 +123,32 @@
       return "";
     }
   }
-  function Y(t) {
-    const e = /\/workspaces\/([^/]+)\//.exec(String(t || ""));
-    return e ? e[1] : "";
+  function Y(e) {
+    const t = /\/workspaces\/([^/]+)\//.exec(String(e || ""));
+    return t ? t[1] : "";
   }
-  function $(t) {
-    const e = String(t || "");
-    let n = /^(\/.*)\/coding_projects\/([^/]+)\//.exec(e);
-    return n ? n[1] + "/coding_projects/" + n[2] : (n = /^\/(.*)\/workspaces\/([^/]+)\//.exec(e), n ? "/" + n[1] + "/workspaces/" + n[2] : "");
+  function $(e) {
+    const t = String(e || "");
+    let n = /^(\/.*)\/coding_projects\/([^/]+)\//.exec(t);
+    return n ? n[1] + "/coding_projects/" + n[2] : (n = /^\/(.*)\/workspaces\/([^/]+)\//.exec(t), n ? "/" + n[1] + "/workspaces/" + n[2] : "");
   }
   async function K() {
-    const t = window.QwenPaw;
+    const e = window.QwenPaw;
     try {
-      const e = await t.host.fetch("/agents");
-      if (e.ok)
-        return ((await e.json()).agents || []).map((c) => c.id).filter(Boolean);
+      const t = await e.host.fetch("/agents");
+      if (t.ok)
+        return ((await t.json()).agents || []).map((c) => c.id).filter(Boolean);
     } catch {
     }
     return [];
   }
-  async function J(t, e) {
+  async function J(e, t) {
     const n = window.QwenPaw;
     if (!n || !n.host || typeof n.host.fetch != "function")
       throw new Error("宿主 fetch 不可用");
     const c = [];
-    e && /^\/files\/preview\//.test(String(e)) && c.push({ direct: String(e), agent: "" });
-    const r = String(t || ""), u = r.replace(/^\/+/, "").split("/").filter(Boolean), f = (o, d, l) => {
+    t && /^\/files\/preview\//.test(String(t)) && c.push({ direct: String(t), agent: "" });
+    const r = String(e || ""), u = r.replace(/^\/+/, "").split("/").filter(Boolean), f = (o, d, l) => {
       d && (c.some((h) => h.root === o && h.path === d && h.agent === l) || c.push({ root: o, path: d, agent: l }));
     }, p = [Y(r)].filter(Boolean);
     for (const o of p) {
@@ -156,8 +156,8 @@
       d && l && f("project:" + d, l, o);
       const h = "/workspaces/" + o + "/", x = r.indexOf(h);
       x >= 0 && f("workspace", r.slice(x + h.length), o);
-      const v = Math.min(u.length, 3);
-      for (let C = 1; C <= v; C++)
+      const b = Math.min(u.length, 3);
+      for (let C = 1; C <= b; C++)
         f("workspace", u.slice(-C).join("/"), o), f("project", u.slice(-C).join("/"), o);
     }
     let a = "";
@@ -190,22 +190,22 @@
     }
     throw new Error("拉取失败（已试 " + m.size + " 个候选）最后: " + a);
   }
-  function Z(t, e, n) {
+  function Z(e, t, n) {
     let c = !1;
     const r = () => {
       if (c) return !0;
-      const a = t.querySelectorAll(".ofv-code-action");
+      const a = e.querySelectorAll(".ofv-code-action");
       if (!a.length) return !1;
       let m = n.nextSibling;
       return a.forEach((g) => {
-        g.setAttribute("data-qp-ofv-hoisted", "1"), g.style.cssText += "margin-left:8px;", e.insertBefore(g, m);
+        g.setAttribute("data-qp-ofv-hoisted", "1"), g.style.cssText += "margin-left:8px;", t.insertBefore(g, m);
       }), c = !0, !0;
     };
     if (r()) return;
     const s = new MutationObserver(() => {
       r() && s.disconnect();
     });
-    s.observe(t, { childList: !0, subtree: !0 });
+    s.observe(e, { childList: !0, subtree: !0 });
     let u = 0;
     const f = setInterval(() => {
       (r() || ++u > 40) && (clearInterval(f), s.disconnect());
@@ -214,17 +214,17 @@
     };
     O.push(p);
   }
-  let _ = null, b = null;
+  let _ = null, v = null;
   const R = {}, O = [];
   function E() {
     try {
-      b && b.destroy && b.destroy();
+      v && v.destroy && v.destroy();
     } catch {
     }
-    if (b = null, _ && _.parentNode) {
-      const t = _, e = t.firstElementChild;
-      e && (e.style.transform = "translateX(100%)"), t.style.opacity = "0", setTimeout(() => {
-        t.parentNode && t.parentNode.removeChild(t);
+    if (v = null, _ && _.parentNode) {
+      const e = _, t = e.firstElementChild;
+      t && (t.style.transform = "translateX(100%)"), e.style.opacity = "0", setTimeout(() => {
+        e.parentNode && e.parentNode.removeChild(e);
       }, 280);
     }
     _ = null;
@@ -238,28 +238,28 @@
       } catch {
       }
   }
-  function V(t) {
-    t.key === "Escape" && E();
+  function V(e) {
+    e.key === "Escape" && E();
   }
-  function ee(t) {
-    const e = document.querySelector('[class*="sender"] textarea');
-    if (!e)
+  function tt(e) {
+    const t = document.querySelector('[class*="sender"] textarea');
+    if (!t)
       return k("未找到聊天输入框，引用失败"), !1;
-    const n = "@ " + String(t || ""), c = e.selectionStart ?? e.value.length, r = e.selectionEnd ?? c, s = e.value.slice(0, c), u = e.value.slice(r), f = s && !/\s$/.test(s) ? " " : "", p = s + f + n + " " + u, a = Object.getPrototypeOf(e), m = Object.getOwnPropertyDescriptor(a, "value");
-    m && m.set ? m.set.call(e, p) : e.value = p, e.dispatchEvent(new Event("input", { bubbles: !0 }));
+    const n = "@ " + String(e || ""), c = t.selectionStart ?? t.value.length, r = t.selectionEnd ?? c, s = t.value.slice(0, c), u = t.value.slice(r), f = s && !/\s$/.test(s) ? " " : "", p = s + f + n + " " + u, a = Object.getPrototypeOf(t), m = Object.getOwnPropertyDescriptor(a, "value");
+    m && m.set ? m.set.call(t, p) : t.value = p, t.dispatchEvent(new Event("input", { bubbles: !0 }));
     const g = s.length + f.length + n.length + 1;
     return requestAnimationFrame(() => {
-      e.focus();
+      t.focus();
       try {
-        e.setSelectionRange(g, g);
+        t.setSelectionRange(g, g);
       } catch {
       }
     }), q("已引用到聊天:", n), !0;
   }
-  function te() {
+  function et() {
     if (document.getElementById("qp-ofv-style")) return;
-    const t = document.createElement("style");
-    t.id = "qp-ofv-style", t.textContent = [
+    const e = document.createElement("style");
+    e.id = "qp-ofv-style", e.textContent = [
       /* ---- 滚动条：OFV 内部滚动容器显式化（含代码区/面板/文本），可拖拽 ---- */
       "[data-qp-ofv-overlay] .ofv-code-body,",
       "[data-qp-ofv-overlay] .ofv-text-block,",
@@ -298,14 +298,17 @@
          与「在聊天中引用」同一行；此处统一其外观与标题栏按钮一致 */
       "[data-qp-ofv-overlay] .ofv-code-action,",
       "[data-qp-ofv-hoisted].ofv-code-action {",
-      "  display: inline-flex; align-items: center; gap: 5px;",
-      "  height: 28px; padding: 0 10px; font-size: 12.5px;",
+      "  display: inline-flex; align-items: center; gap: 6px;",
+      "  height: 28px; padding: 0 11px; font-size: 12.5px;",
       "  border: 1px solid #e2e8f0; background: #fff; color: #334155;",
       "  border-radius: 6px; cursor: pointer; line-height: 1;",
+      "  margin-left: 8px;",
       "}",
       "[data-qp-ofv-hoisted].ofv-code-action:hover { background: #f1f5f9; }",
+      /* 搬运后：三个文字按钮自成一组，与右侧图标按钮（全屏/关闭）拉开距 */
+      "[data-qp-ofv-hoisted].ofv-code-action:last-of-type { margin-right: 16px; }",
       "[data-qp-ofv-overlay] .ofv-code-action::before {",
-      "  font-size: 11px; line-height: 1; font-style: normal;",
+      "  font-size: 11.5px; line-height: 1; font-style: normal;",
       "  margin-top: -0.5px;",
       "  display: inline-block;",
       "}",
@@ -317,10 +320,10 @@
       /* 按钮已搬到标题栏：面板头部隐藏动作容器（含状态），避免留白 */
       "[data-qp-ofv-overlay] .ofv-code-actions { display: none !important; }"
     ].join(`
-`), document.head.appendChild(t);
+`), document.head.appendChild(e);
   }
-  async function X(t, e, n, c) {
-    E(), te();
+  async function X(e, t, n, c) {
+    E(), et();
     const r = document.createElement("div");
     r.setAttribute("data-qp-ofv-overlay", "1"), r.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.45);transition:opacity .25s ease;", r.onclick = (i) => {
       i.target === r && E();
@@ -330,7 +333,7 @@
     const u = document.createElement("div");
     u.style.cssText = "flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e2e8f0;background:#fff;";
     const f = document.createElement("div");
-    f.style.cssText = "font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;", f.textContent = t + " · 预览";
+    f.style.cssText = "font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;", f.textContent = e + " · 预览";
     const p = document.createElement("button");
     p.textContent = "✕", p.title = "关闭 (Esc)", p.style.cssText = "border:0;background:#f1f5f9;color:#475569;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;", p.onmouseenter = () => {
       p.style.background = "#e2e8f0";
@@ -343,7 +346,7 @@
     }, a.onmouseleave = () => {
       a.style.background = "#fff";
     }, a.onclick = () => {
-      ee(n) && E();
+      tt(n) && E();
     };
     const g = [
       "pdf",
@@ -367,7 +370,7 @@
       "xlsx",
       "xls",
       "ods"
-    ].includes(e), o = document.createElement("button");
+    ].includes(t), o = document.createElement("button");
     o.textContent = "☰ 目录", o.title = "显示/隐藏页码导航", o.style.cssText = a.style.cssText, o.onmouseenter = () => {
       o.style.background = "#f1f5f9";
     }, o.onmouseleave = () => {
@@ -385,28 +388,28 @@
     let h = !1;
     const x = document.createElement("div");
     x.style.cssText = "flex:0 0 auto;width:0;overflow:hidden;transition:width .22s ease;border-right:0 solid #e2e8f0;background:#f8fafc;";
-    const v = document.createElement("div");
-    v.style.cssText = "width:200px;padding:12px;box-sizing:border-box;height:100%;overflow:auto;", v.innerHTML = '<div style="font-size:12px;color:#64748b;margin-bottom:8px">页面导航</div><div style="display:flex;gap:6px;margin-bottom:10px"><button data-toc="prev" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">上一页</button><button data-toc="next" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">下一页</button></div><div style="display:flex;gap:6px;align-items:center"><input data-toc="page" type="number" min="1" style="width:64px;height:28px;border:1px solid #e2e8f0;border-radius:6px;padding:0 6px"><button data-toc="go" style="height:28px;padding:0 10px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">跳转</button></div><div data-toc="tip" style="margin-top:10px;font-size:11.5px;color:#94a3b8;line-height:1.5">提示：也可直接用工具栏的缩放与搜索</div>', x.appendChild(v);
+    const b = document.createElement("div");
+    b.style.cssText = "width:200px;padding:12px;box-sizing:border-box;height:100%;overflow:auto;", b.innerHTML = '<div style="font-size:12px;color:#64748b;margin-bottom:8px">页面导航</div><div style="display:flex;gap:6px;margin-bottom:10px"><button data-toc="prev" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">上一页</button><button data-toc="next" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">下一页</button></div><div style="display:flex;gap:6px;align-items:center"><input data-toc="page" type="number" min="1" style="width:64px;height:28px;border:1px solid #e2e8f0;border-radius:6px;padding:0 6px"><button data-toc="go" style="height:28px;padding:0 10px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">跳转</button></div><div data-toc="tip" style="margin-top:10px;font-size:11.5px;color:#94a3b8;line-height:1.5">提示：也可直接用工具栏的缩放与搜索</div>', x.appendChild(b);
     function C(i) {
       h = i, x.style.width = i ? "200px" : "0", x.style.borderRightWidth = i ? "1px" : "0", o.style.background = i ? "#e2e8f0" : "#fff", setTimeout(() => {
         try {
-          b && b.resize && b.resize();
+          v && v.resize && v.resize();
         } catch {
         }
       }, 250);
     }
-    const A = v.querySelector('[data-toc="page"]');
+    const A = b.querySelector('[data-toc="page"]');
     let P = 1;
     const F = (i) => {
-      if (!b || typeof b.goToPage != "function") return !1;
-      const y = b.goToPage(i);
+      if (!v || typeof v.goToPage != "function") return !1;
+      const y = v.goToPage(i);
       return y && (P = i), y;
     };
-    v.querySelector('[data-toc="prev"]').onclick = () => {
+    b.querySelector('[data-toc="prev"]').onclick = () => {
       F(Math.max(1, P - 1)) && (A.value = P);
-    }, v.querySelector('[data-toc="next"]').onclick = () => {
+    }, b.querySelector('[data-toc="next"]').onclick = () => {
       F(P + 1) && (A.value = P);
-    }, v.querySelector('[data-toc="go"]').onclick = () => {
+    }, b.querySelector('[data-toc="go"]').onclick = () => {
       const i = parseInt(A.value, 10);
       i > 0 && F(i);
     };
@@ -429,7 +432,7 @@
       S.removeChild(w);
       const i = document.createElement("div");
       i.style.cssText = "height:100%;min-height:0;", S.appendChild(i);
-      const y = W[e] || "text";
+      const y = W[t] || "text";
       if (!R[y]) {
         const D = window.__QP_OFV_RENDERER_BASE__ || location.origin + "/api/frontend_plugin/" + Q + "/files/frontend/renderer/";
         R[y] = import(
@@ -439,30 +442,30 @@
           throw delete R[y], j;
         });
       }
-      const { renderViewer: le } = await R[y];
-      b = le({
+      const { renderViewer: lt } = await R[y];
+      v = lt({
         container: i,
         file: H,
-        fileName: t,
+        fileName: e,
         height: "100%",
         locale: "zh-CN",
         theme: "light",
         onError: (D, j) => k("OFV 渲染错误", j && j.name, D)
-      }), q("已打开 OFV 预览:", t, "(" + e + ")", n), Z(i, l, a);
+      }), q("已打开 OFV 预览:", e, "(" + t + ")", n), Z(i, l, a);
     } catch (i) {
       w.textContent = "OFV 渲染失败：" + (i && i.message ? i.message : i) + "（点击关闭）", w.onclick = E, k("OFV 渲染失败", i);
     }
   }
-  function oe() {
+  function ot() {
     window.__QP_OFV_CAPTURE__ || (window.__QP_OFV_CAPTURE__ = !0, window.addEventListener(
       "qwenpaw:open-file-preview",
-      (t) => {
+      (e) => {
         try {
-          const n = (t && t.detail || {}).target || {}, c = String(n.artifactUrl || ""), r = String(n.path || ""), s = B(r || c), u = U(s || c || r);
+          const n = (e && e.detail || {}).target || {}, c = String(n.artifactUrl || ""), r = String(n.path || ""), s = B(r || c), u = U(s || c || r);
           if (!T.has(u)) return;
-          t.stopPropagation();
+          e.stopPropagation();
           try {
-            t.stopImmediatePropagation();
+            e.stopImmediatePropagation();
           } catch {
           }
           q("接管预览:", s, "(" + u + ") path=", r, "url=", c);
@@ -472,88 +475,88 @@
             return;
           }
           X(s, u, f, c);
-        } catch (e) {
-          k("接管失败:", e);
+        } catch (t) {
+          k("接管失败:", t);
         }
       },
       !0
     ), q("已安装预览接管监听"));
   }
-  const ne = new RegExp(
+  const nt = new RegExp(
     "([\\w@.\\-]+\\.(" + [...T].join("|") + "))(?![\\w-])",
     "i"
-  ), re = new RegExp(
+  ), rt = new RegExp(
     "(\\/?[\\w@.\\-]+(?:\\/[\\w@.\\-]+)*\\.(" + [...T].join("|") + "))(?![\\w-])",
     "i"
   );
-  function se(t, e) {
-    if (!t) return !1;
-    const n = t.getAttribute("title") || t.getAttribute("aria-label") || t.getAttribute("data-path") || "", c = (t.textContent || "").replace(/\s+/g, " ").trim(), r = (n + " " + c).trim();
+  function st(e, t) {
+    if (!e) return !1;
+    const n = e.getAttribute("title") || e.getAttribute("aria-label") || e.getAttribute("data-path") || "", c = (e.textContent || "").replace(/\s+/g, " ").trim(), r = (n + " " + c).trim();
     let s = r;
     try {
       const o = decodeURIComponent(r);
       o.indexOf("�") === -1 && (s = o);
     } catch {
     }
-    const u = ne.exec(s);
+    const u = nt.exec(s);
     if (!u) return !1;
     const f = B(u[1]), p = U(f);
     if (!T.has(p)) return !1;
     let a = "";
-    const m = re.exec(s);
+    const m = rt.exec(s);
     m ? (a = m[1], a.startsWith("/") || (a = "/" + a)) : a = f;
     try {
-      const o = t.querySelector('a[href*="/files/preview/"], img[src*="/files/preview/"]'), d = o && (o.getAttribute("href") || o.getAttribute("src")) || "", l = G(d);
+      const o = e.querySelector('a[href*="/files/preview/"], img[src*="/files/preview/"]'), d = o && (o.getAttribute("href") || o.getAttribute("src")) || "", l = G(d);
       l && (a = l);
     } catch {
     }
     const g = N(a);
     if (!g) return !1;
-    if (e) {
-      e.preventDefault(), e.stopPropagation();
+    if (t) {
+      t.preventDefault(), t.stopPropagation();
       try {
-        e.stopImmediatePropagation();
+        t.stopImmediatePropagation();
       } catch {
       }
     }
     return q("接管预览(DOM):", f, "(" + p + ") path=", g), X(f, p, g, ""), !0;
   }
-  function ae() {
+  function at() {
     window.__QP_OFV_DOM__ || (window.__QP_OFV_DOM__ = !0, document.addEventListener(
       "click",
-      (t) => {
+      (e) => {
         try {
-          const e = t.target;
-          if (!e || !e.closest || e.closest("[data-qp-ofv-overlay]")) return;
-          const n = e.closest('[class*="bubbleFile"]') || e.closest('[class*="ResponseArtifactList-module__file"]') || e.closest('[class*="ResponseArtifactList-module__details__"]');
+          const t = e.target;
+          if (!t || !t.closest || t.closest("[data-qp-ofv-overlay]")) return;
+          const n = t.closest('[class*="bubbleFile"]') || t.closest('[class*="ResponseArtifactList-module__file"]') || t.closest('[class*="ResponseArtifactList-module__details__"]');
           if (!n) return;
-          se(n, t);
-        } catch (e) {
-          k("DOM 委托失败:", e);
+          st(n, e);
+        } catch (t) {
+          k("DOM 委托失败:", t);
         }
       },
       !0
     ), q("已安装 DOM 点击委托"));
   }
-  const ie = "/api/frontend_plugin/" + Q + "/files/frontend/style.css";
-  function ce() {
+  const it = "/api/frontend_plugin/" + Q + "/files/frontend/style.css";
+  function ct() {
     if (document.querySelector("link[data-qp-ofv-style]")) return;
-    const t = document.createElement("link");
-    t.rel = "stylesheet", t.href = ie, t.setAttribute("data-qp-ofv-style", "1"), document.head.appendChild(t);
+    const e = document.createElement("link");
+    e.rel = "stylesheet", e.href = it, e.setAttribute("data-qp-ofv-style", "1"), document.head.appendChild(e);
   }
   function z() {
-    ce(), oe(), ae();
+    ct(), ot(), at();
   }
   if (window.QwenPaw && window.QwenPaw.host)
     z();
   else {
-    let t = 0;
-    const e = setInterval(() => {
+    let e = 0;
+    const t = setInterval(() => {
       if (window.QwenPaw && window.QwenPaw.host) {
-        clearInterval(e), z();
+        clearInterval(t), z();
         return;
       }
-      ++t > 40 && (clearInterval(e), z());
+      ++e > 40 && (clearInterval(t), z());
     }, 500);
   }
 })();
