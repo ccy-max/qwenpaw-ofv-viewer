@@ -7,3 +7,6 @@ dist/
 # OS / 编辑器
 .DS_Store
 *.swp
+
+# 内部开发跟踪文档（不对外发布）
+OFV_PREVIEW_TODO.md

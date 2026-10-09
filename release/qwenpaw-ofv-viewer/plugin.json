@@ -1,9 +1,9 @@
 {
   "id": "qwenpaw-ofv-viewer",
   "name": "OFV 万能文件预览",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "type": "frontend",
-  "description": "用 Open File Viewer (OFV) 接管对话文件卡片预览：Office 全格式（含 doc/xls/ppt 老格式、rtf、OpenDocument）、压缩包(zip/rar/7z/tar)、邮件(eml/msg/mbox)、文本/源码高亮。纯前端渲染，零后端依赖；未覆盖格式自动放行原生预览。v0.2.3: 修复 host.fetch 双重 /api 前缀（真机 /api/api/ 404 根因，此前所有候选必然全挂），并保留 project:<项目根> 绕开会话绑定。",
+  "description": "用 Open File Viewer (OFV) 接管对话文件卡片预览：Office 全格式（含 doc/xls/ppt 老格式、rtf、OpenDocument）、压缩包(zip/rar/7z/tar)、邮件(eml/msg/mbox)、文本/源码高亮。纯前端渲染，零后端依赖；未覆盖格式自动放行原生预览。v0.2.4: 右侧抽屉式预览 + 中文工具栏(zh-CN) + 可拖滚动条。",
   "author": "Zero (QwenPaw assistant)",
   "entry": {
     "frontend": "frontend/index.js"
