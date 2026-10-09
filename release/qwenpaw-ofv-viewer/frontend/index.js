@@ -1,5 +1,5 @@
 (() => {
-  const N = "0.6.4", U = "[ofv-viewer]", Q = "qwenpaw-ofv-viewer", z = /* @__PURE__ */ new Set([
+  const B = "0.6.5", N = "[ofv-viewer]", Q = "qwenpaw-ofv-viewer", O = /* @__PURE__ */ new Set([
     // pdf（v0.4.0 接管）
     "pdf",
     // office（含老格式，原生都不支持）
@@ -49,7 +49,7 @@
     "sql",
     "xml"
   ]), Y = (() => {
-    const t = {}, e = (n, c) => c.forEach((r) => t[r] = n);
+    const t = {}, e = (n, s) => s.forEach((r) => t[r] = n);
     return e("office", ["docx", "docm", "dotx", "dotm", "rtf", "odt", "fodt"]), e("sheet", ["xlsx", "xlsm", "xlsb", "xls", "ods", "fods"]), e("ppt", ["pptx", "pptm", "ppsx", "ppsm", "potx", "potm", "odp", "fodp"]), e("legacy", ["doc", "dot", "ppt", "pps"]), e("pdf", ["pdf"]), e("archive", ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"]), e("email", ["eml", "msg", "mbox"]), e("plain", ["txt", "log", "conf", "ini", "env", "properties", "md"]), e("text", [
       "json",
       "yaml",
@@ -82,14 +82,14 @@
       "dockerfile",
       "makefile"
     ]), t;
-  })(), _ = (...t) => {
+  })(), E = (...t) => {
     try {
-      console.log(U, N, ...t);
+      console.log(N, B, ...t);
     } catch {
     }
-  }, k = (...t) => {
+  }, y = (...t) => {
     try {
-      console.error(U, N, ...t);
+      console.error(N, B, ...t);
     } catch {
     }
   };
@@ -116,9 +116,9 @@
     return e;
   }
   function J(t) {
-    const e = String(t || ""), n = "/files/preview/", c = e.indexOf(n);
-    if (c < 0) return "";
-    const r = e.slice(c + n.length).split(/[?#]/, 1)[0];
+    const e = String(t || ""), n = "/files/preview/", s = e.indexOf(n);
+    if (s < 0) return "";
+    const r = e.slice(s + n.length).split(/[?#]/, 1)[0];
     if (!r) return "";
     try {
       const a = decodeURIComponent(r).replace(/\\/g, "/");
@@ -141,7 +141,7 @@
     try {
       const e = await t.host.fetch("/agents");
       if (e.ok)
-        return ((await e.json()).agents || []).map((c) => c.id).filter(Boolean);
+        return ((await e.json()).agents || []).map((s) => s.id).filter(Boolean);
     } catch {
     }
     return [];
@@ -150,117 +150,161 @@
     const n = window.QwenPaw;
     if (!n || !n.host || typeof n.host.fetch != "function")
       throw new Error("宿主 fetch 不可用");
-    const c = [];
-    e && /^\/files\/preview\//.test(String(e)) && c.push({ direct: String(e), agent: "" });
-    const r = String(t || ""), f = r.replace(/^\/+/, "").split("/").filter(Boolean), l = (o, i, u) => {
-      i && (c.some((g) => g.root === o && g.path === i && g.agent === u) || c.push({ root: o, path: i, agent: u }));
-    }, m = [Z(r)].filter(Boolean);
-    for (const o of m) {
-      const i = ee(r), u = i ? r.slice(i.length + 1) : "";
-      i && u && l("project:" + i, u, o);
-      const g = "/workspaces/" + o + "/", p = r.indexOf(g);
-      p >= 0 && l("workspace", r.slice(p + g.length), o);
-      const q = Math.min(f.length, 3);
-      for (let v = 1; v <= q; v++)
-        l("workspace", f.slice(-v).join("/"), o), l("project", f.slice(-v).join("/"), o);
+    const s = [];
+    e && /^\/files\/preview\//.test(String(e)) && s.push({ direct: String(e), agent: "" });
+    const r = String(t || ""), p = r.replace(/^\/+/, "").split("/").filter(Boolean), d = (o, c, h) => {
+      c && (s.some((m) => m.root === o && m.path === c && m.agent === h) || s.push({ root: o, path: c, agent: h }));
+    }, f = [Z(r)].filter(Boolean);
+    for (const o of f) {
+      const c = ee(r), h = c ? r.slice(c.length + 1) : "";
+      c && h && d("project:" + c, h, o);
+      const m = "/workspaces/" + o + "/", u = r.indexOf(m);
+      u >= 0 && d("workspace", r.slice(u + m.length), o);
+      const C = Math.min(p.length, 3);
+      for (let x = 1; x <= C; x++)
+        d("workspace", p.slice(-x).join("/"), o), d("project", p.slice(-x).join("/"), o);
     }
-    let d = "";
-    const x = /* @__PURE__ */ new Set();
-    for (const o of c) {
-      const i = o.direct ? "d" : o.root + ":" + o.path + "@" + o.agent;
-      if (!x.has(i)) {
-        x.add(i);
+    let l = "";
+    const v = /* @__PURE__ */ new Set();
+    for (const o of s) {
+      const c = o.direct ? "d" : o.root + ":" + o.path + "@" + o.agent;
+      if (!v.has(c)) {
+        v.add(c);
         try {
-          const u = o.direct ? o.direct : "/workspace/file-download?path=" + encodeURIComponent(o.path) + "&root=" + encodeURIComponent(o.root), g = o.agent ? { headers: { "X-Agent-Id": o.agent } } : void 0, p = await n.host.fetch(u, g);
-          if (p.ok) return await p.blob();
-          d = (o.direct ? "direct" : o.root + ":" + o.path + "@" + (o.agent || "cur")) + " -> HTTP " + p.status;
-        } catch (u) {
-          d = (o.direct ? "direct" : o.root + ":" + o.path + "@" + (o.agent || "cur")) + " -> " + (u && u.message ? u.message : u);
+          const h = o.direct ? o.direct : "/workspace/file-download?path=" + encodeURIComponent(o.path) + "&root=" + encodeURIComponent(o.root), m = o.agent ? { headers: { "X-Agent-Id": o.agent } } : void 0, u = await n.host.fetch(h, m);
+          if (u.ok) return await u.blob();
+          l = (o.direct ? "direct" : o.root + ":" + o.path + "@" + (o.agent || "cur")) + " -> HTTP " + u.status;
+        } catch (h) {
+          l = (o.direct ? "direct" : o.root + ":" + o.path + "@" + (o.agent || "cur")) + " -> " + (h && h.message ? h.message : h);
         }
       }
     }
-    const h = f[f.length - 1] || "";
-    if (h && !m.length) {
+    const g = p[p.length - 1] || "";
+    if (g && !f.length) {
       const o = await te();
-      for (const i of o)
-        for (const u of ["workspace", "project"])
+      for (const c of o)
+        for (const h of ["workspace", "project"])
           try {
-            const g = "/workspace/file-download?path=" + encodeURIComponent(h) + "&root=" + u, p = await n.host.fetch(g, { headers: { "X-Agent-Id": i } });
-            if (p.ok) return await p.blob();
-            d = u + ":" + h + "@" + i + " -> HTTP " + p.status;
-          } catch (g) {
-            d = u + ":" + h + "@" + i + " -> " + (g && g.message ? g.message : g);
+            const m = "/workspace/file-download?path=" + encodeURIComponent(g) + "&root=" + h, u = await n.host.fetch(m, { headers: { "X-Agent-Id": c } });
+            if (u.ok) return await u.blob();
+            l = h + ":" + g + "@" + c + " -> HTTP " + u.status;
+          } catch (m) {
+            l = h + ":" + g + "@" + c + " -> " + (m && m.message ? m.message : m);
           }
     }
-    throw new Error("拉取失败（已试 " + x.size + " 个候选）最后: " + d);
+    throw new Error("拉取失败（已试 " + v.size + " 个候选）最后: " + l);
   }
   function ne(t, e, n) {
-    let c = !1;
+    let s = !1;
     const r = () => {
-      if (c) return !0;
-      const d = t.querySelectorAll(".ofv-code-action");
-      if (!d.length) return !1;
-      let x = n.nextSibling;
-      return d.forEach((h) => {
-        h.setAttribute("data-qp-ofv-hoisted", "1"), h.style.cssText += "margin-left:8px;", e.insertBefore(h, x);
-      }), c = !0, !0;
+      if (s) return !0;
+      const l = t.querySelectorAll(".ofv-code-action");
+      if (!l.length) return !1;
+      let v = n.nextSibling;
+      return l.forEach((g) => {
+        g.setAttribute("data-qp-ofv-hoisted", "1"), g.style.cssText += "margin-left:8px;", e.insertBefore(g, v);
+      }), s = !0, !0;
     };
     if (r()) return;
     const a = new MutationObserver(() => {
       r() && a.disconnect();
     });
     a.observe(t, { childList: !0, subtree: !0 });
-    let f = 0;
-    const l = setInterval(() => {
-      (r() || ++f > 40) && (clearInterval(l), a.disconnect());
-    }, 250), m = () => {
-      a.disconnect(), clearInterval(l);
+    let p = 0;
+    const d = setInterval(() => {
+      (r() || ++p > 40) && (clearInterval(d), a.disconnect());
+    }, 250), f = () => {
+      a.disconnect(), clearInterval(d);
     };
-    F.push(m);
+    z.push(f);
   }
-  let P = null, b = null;
-  const I = {}, F = [];
-  function E() {
+  let T = null, b = null;
+  const j = {}, z = [];
+  function re(t, e) {
+    if (!t) {
+      y("下载失败：没有可用的文件数据");
+      return;
+    }
+    try {
+      const n = URL.createObjectURL(t), s = document.createElement("a");
+      s.href = n, s.download = e || "download", s.style.display = "none", document.body.appendChild(s), s.click(), setTimeout(() => {
+        try {
+          s.remove(), URL.revokeObjectURL(n);
+        } catch {
+        }
+      }, 4e3), E("已触发下载:", e, t.size, "bytes");
+    } catch (n) {
+      y("下载失败:", n);
+    }
+  }
+  function se(t, e, n) {
+    const s = (f) => {
+      f.__qpOfvDl || (f.__qpOfvDl = !0, f.addEventListener("click", (l) => {
+        l.preventDefault(), l.stopPropagation();
+        try {
+          l.stopImmediatePropagation();
+        } catch {
+        }
+        re(e, n);
+      }, !0));
+    }, r = () => {
+      t.querySelectorAll("button").forEach((f) => {
+        const l = (f.title || "") + (f.textContent || "");
+        /下载|download/i.test(l) && s(f);
+      });
+    };
+    r();
+    const a = new MutationObserver(r);
+    a.observe(t, { childList: !0, subtree: !0 });
+    let p = 0;
+    const d = setInterval(() => {
+      r(), ++p > 30 && (clearInterval(d), a.disconnect());
+    }, 300);
+    z.push(() => {
+      a.disconnect(), clearInterval(d);
+    });
+  }
+  function q() {
     try {
       b && b.destroy && b.destroy();
     } catch {
     }
-    if (b = null, P && P.parentNode) {
-      const t = P, e = t.firstElementChild;
+    if (b = null, T && T.parentNode) {
+      const t = T, e = t.firstElementChild;
       e && (e.style.transform = "translateX(100%)"), t.style.opacity = "0", setTimeout(() => {
         t.parentNode && t.parentNode.removeChild(t);
       }, 280);
     }
-    P = null;
+    T = null;
     try {
       document.removeEventListener("keydown", W);
     } catch {
     }
-    for (; F.length; )
+    for (; z.length; )
       try {
-        F.pop()();
+        z.pop()();
       } catch {
       }
   }
   function W(t) {
-    t.key === "Escape" && E();
+    t.key === "Escape" && q();
   }
-  function re(t) {
+  function ae(t) {
     const e = document.querySelector('[class*="sender"] textarea');
     if (!e)
-      return k("未找到聊天输入框，引用失败"), !1;
-    const n = "@ " + String(t || ""), c = e.selectionStart ?? e.value.length, r = e.selectionEnd ?? c, a = e.value.slice(0, c), f = e.value.slice(r), l = a && !/\s$/.test(a) ? " " : "", m = a + l + n + " " + f, d = Object.getPrototypeOf(e), x = Object.getOwnPropertyDescriptor(d, "value");
-    x && x.set ? x.set.call(e, m) : e.value = m, e.dispatchEvent(new Event("input", { bubbles: !0 }));
-    const h = a.length + l.length + n.length + 1;
+      return y("未找到聊天输入框，引用失败"), !1;
+    const n = "@ " + String(t || ""), s = e.selectionStart ?? e.value.length, r = e.selectionEnd ?? s, a = e.value.slice(0, s), p = e.value.slice(r), d = a && !/\s$/.test(a) ? " " : "", f = a + d + n + " " + p, l = Object.getPrototypeOf(e), v = Object.getOwnPropertyDescriptor(l, "value");
+    v && v.set ? v.set.call(e, f) : e.value = f, e.dispatchEvent(new Event("input", { bubbles: !0 }));
+    const g = a.length + d.length + n.length + 1;
     return requestAnimationFrame(() => {
       e.focus();
       try {
-        e.setSelectionRange(h, h);
+        e.setSelectionRange(g, g);
       } catch {
       }
-    }), _("已引用到聊天:", n), !0;
+    }), E("已引用到聊天:", n), !0;
   }
-  function se() {
+  function ie() {
     if (document.getElementById("qp-ofv-style")) return;
     const t = document.createElement("style");
     t.id = "qp-ofv-style", t.textContent = [
@@ -327,40 +371,40 @@
     ].join(`
 `), document.head.appendChild(t);
   }
-  async function G(t, e, n, c) {
-    E(), se();
+  async function G(t, e, n, s) {
+    q(), ie();
     const r = document.createElement("div");
-    r.setAttribute("data-qp-ofv-overlay", "1"), r.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.45);transition:opacity .25s ease;", r.onclick = (s) => {
-      s.target === r && E();
+    r.setAttribute("data-qp-ofv-overlay", "1"), r.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.45);transition:opacity .25s ease;", r.onclick = (i) => {
+      i.target === r && q();
     };
     const a = document.createElement("div");
     a.style.cssText = "position:fixed;right:0;top:0;bottom:0;z-index:2147483001;width:min(96vw, 1100px);background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(0.16,1,0.3,1);font:14px/1.4 -apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;";
-    const f = document.createElement("div");
-    f.style.cssText = "flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e2e8f0;background:#fff;";
-    const l = document.createElement("div");
-    l.style.cssText = "min-width:0;overflow:hidden;";
-    const m = document.createElement("div");
-    m.textContent = t, m.style.cssText = "font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+    const p = document.createElement("div");
+    p.style.cssText = "flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e2e8f0;background:#fff;";
     const d = document.createElement("div");
-    d.style.cssText = "font-size:11.5px;color:#94a3b8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;", l.appendChild(m), l.appendChild(d);
-    const x = () => {
-      const s = [];
-      e && s.push(e.toUpperCase()), h.value != null && s.push($(h.value)), d.textContent = s.join(" · ");
-    }, h = { value: null }, o = document.createElement("button");
+    d.style.cssText = "min-width:0;overflow:hidden;";
+    const f = document.createElement("div");
+    f.textContent = t, f.style.cssText = "font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+    const l = document.createElement("div");
+    l.style.cssText = "font-size:11.5px;color:#94a3b8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;", d.appendChild(f), d.appendChild(l);
+    const v = () => {
+      const i = [];
+      e && i.push(e.toUpperCase()), g.value != null && i.push($(g.value)), l.textContent = i.join(" · ");
+    }, g = { value: null }, o = document.createElement("button");
     o.textContent = "✕", o.title = "关闭 (Esc)", o.style.cssText = "border:0;background:#f1f5f9;color:#475569;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;", o.onmouseenter = () => {
       o.style.background = "#e2e8f0";
     }, o.onmouseleave = () => {
       o.style.background = "#f1f5f9";
-    }, o.onclick = E;
-    const i = document.createElement("button");
-    i.textContent = "在聊天中引用", i.title = "以 @ 路径的形式插入到聊天输入框", i.style.cssText = "border:1px solid #e2e8f0;background:#fff;color:#334155;height:28px;padding:0 10px;border-radius:6px;cursor:pointer;font-size:12.5px;margin-right:8px;line-height:1;", i.onmouseenter = () => {
-      i.style.background = "#f1f5f9";
-    }, i.onmouseleave = () => {
-      i.style.background = "#fff";
-    }, i.onclick = () => {
-      re(n) && E();
+    }, o.onclick = q;
+    const c = document.createElement("button");
+    c.textContent = "在聊天中引用", c.title = "以 @ 路径的形式插入到聊天输入框", c.style.cssText = "border:1px solid #e2e8f0;background:#fff;color:#334155;height:28px;padding:0 10px;border-radius:6px;cursor:pointer;font-size:12.5px;margin-right:8px;line-height:1;", c.onmouseenter = () => {
+      c.style.background = "#f1f5f9";
+    }, c.onmouseleave = () => {
+      c.style.background = "#fff";
+    }, c.onclick = () => {
+      ae(n) && q();
     };
-    const g = [
+    const m = [
       "pdf",
       "docx",
       "docm",
@@ -382,148 +426,148 @@
       "xlsx",
       "xls",
       "ods"
-    ].includes(e), p = document.createElement("button");
-    p.textContent = "☰ 目录", p.title = "显示/隐藏页码导航", p.style.cssText = i.style.cssText, p.onmouseenter = () => {
-      p.style.background = "#f1f5f9";
-    }, p.onmouseleave = () => {
-      p.style.background = "#fff";
-    }, p.onclick = () => {
-      ue(!K);
+    ].includes(e), u = document.createElement("button");
+    u.textContent = "☰ 目录", u.title = "显示/隐藏页码导航", u.style.cssText = c.style.cssText, u.onmouseenter = () => {
+      u.style.background = "#f1f5f9";
+    }, u.onmouseleave = () => {
+      u.style.background = "#fff";
+    }, u.onclick = () => {
+      ge(!K);
     };
-    const q = document.createElement("button");
-    q.textContent = "⛶", q.title = "全屏 / 退出全屏", q.style.cssText = "border:0;background:#f1f5f9;color:#475569;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;margin-right:8px;", q.onclick = () => {
+    const C = document.createElement("button");
+    C.textContent = "⛶", C.title = "全屏 / 退出全屏", C.style.cssText = "border:0;background:#f1f5f9;color:#475569;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;margin-right:8px;", C.onclick = () => {
       document.fullscreenElement ? document.exitFullscreen() : a.requestFullscreen && a.requestFullscreen().catch(() => {
       });
     };
-    const v = document.createElement("div");
-    v.style.cssText = "display:flex;align-items:center;", v.appendChild(i), g && v.appendChild(p), v.appendChild(q), v.appendChild(o), f.appendChild(l), f.appendChild(v);
+    const x = document.createElement("div");
+    x.style.cssText = "display:flex;align-items:center;", x.appendChild(c), m && x.appendChild(u), x.appendChild(C), x.appendChild(o), p.appendChild(d), p.appendChild(x);
     let K = !1;
-    const T = document.createElement("div");
-    T.style.cssText = "flex:0 0 auto;width:0;overflow:hidden;transition:width .22s ease;border-right:0 solid #e2e8f0;background:#f8fafc;";
-    const C = document.createElement("div");
-    C.style.cssText = "width:200px;padding:12px;box-sizing:border-box;height:100%;overflow:auto;", C.innerHTML = '<div style="font-size:12px;color:#64748b;margin-bottom:8px">页面导航</div><div style="display:flex;gap:6px;margin-bottom:10px"><button data-toc="prev" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">上一页</button><button data-toc="next" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">下一页</button></div><div style="display:flex;gap:6px;align-items:center"><input data-toc="page" type="number" min="1" style="width:64px;height:28px;border:1px solid #e2e8f0;border-radius:6px;padding:0 6px"><button data-toc="go" style="height:28px;padding:0 10px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">跳转</button></div><div data-toc="tip" style="margin-top:10px;font-size:11.5px;color:#94a3b8;line-height:1.5">提示：也可直接用工具栏的缩放与搜索</div>', T.appendChild(C);
-    function ue(s) {
-      K = s, T.style.width = s ? "200px" : "0", T.style.borderRightWidth = s ? "1px" : "0", p.style.background = s ? "#e2e8f0" : "#fff", setTimeout(() => {
+    const S = document.createElement("div");
+    S.style.cssText = "flex:0 0 auto;width:0;overflow:hidden;transition:width .22s ease;border-right:0 solid #e2e8f0;background:#f8fafc;";
+    const _ = document.createElement("div");
+    _.style.cssText = "width:200px;padding:12px;box-sizing:border-box;height:100%;overflow:auto;", _.innerHTML = '<div style="font-size:12px;color:#64748b;margin-bottom:8px">页面导航</div><div style="display:flex;gap:6px;margin-bottom:10px"><button data-toc="prev" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">上一页</button><button data-toc="next" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">下一页</button></div><div style="display:flex;gap:6px;align-items:center"><input data-toc="page" type="number" min="1" style="width:64px;height:28px;border:1px solid #e2e8f0;border-radius:6px;padding:0 6px"><button data-toc="go" style="height:28px;padding:0 10px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">跳转</button></div><div data-toc="tip" style="margin-top:10px;font-size:11.5px;color:#94a3b8;line-height:1.5">提示：也可直接用工具栏的缩放与搜索</div>', S.appendChild(_);
+    function ge(i) {
+      K = i, S.style.width = i ? "200px" : "0", S.style.borderRightWidth = i ? "1px" : "0", u.style.background = i ? "#e2e8f0" : "#fff", setTimeout(() => {
         try {
           b && b.resize && b.resize();
         } catch {
         }
       }, 250);
     }
-    const D = C.querySelector('[data-toc="page"]');
-    let S = 1;
-    const B = (s) => {
+    const L = _.querySelector('[data-toc="page"]');
+    let R = 1;
+    const M = (i) => {
       if (!b || typeof b.goToPage != "function") return !1;
-      const y = b.goToPage(s);
-      return y && (S = s), y;
+      const w = b.goToPage(i);
+      return w && (R = i), w;
     };
-    C.querySelector('[data-toc="prev"]').onclick = () => {
-      B(Math.max(1, S - 1)) && (D.value = S);
-    }, C.querySelector('[data-toc="next"]').onclick = () => {
-      B(S + 1) && (D.value = S);
-    }, C.querySelector('[data-toc="go"]').onclick = () => {
-      const s = parseInt(D.value, 10);
-      s > 0 && B(s);
+    _.querySelector('[data-toc="prev"]').onclick = () => {
+      M(Math.max(1, R - 1)) && (L.value = R);
+    }, _.querySelector('[data-toc="next"]').onclick = () => {
+      M(R + 1) && (L.value = R);
+    }, _.querySelector('[data-toc="go"]').onclick = () => {
+      const i = parseInt(L.value, 10);
+      i > 0 && M(i);
     };
-    const R = document.createElement("div");
-    R.style.cssText = "flex:1 1 auto;min-height:0;overflow:auto;padding:12px;";
-    const w = document.createElement("div");
-    w.textContent = "加载中…", w.style.cssText = "display:flex;align-items:center;justify-content:center;height:100%;min-height:240px;color:#64748b;", R.appendChild(w), a.appendChild(f);
-    const O = document.createElement("div");
-    O.style.cssText = "flex:1 1 auto;min-height:0;display:flex;", O.appendChild(T), O.appendChild(R), a.appendChild(O), r.appendChild(a), document.body.appendChild(r), P = r, document.addEventListener("keydown", W), requestAnimationFrame(() => {
+    const I = document.createElement("div");
+    I.style.cssText = "flex:1 1 auto;min-height:0;overflow:auto;padding:12px;";
+    const k = document.createElement("div");
+    k.textContent = "加载中…", k.style.cssText = "display:flex;align-items:center;justify-content:center;height:100%;min-height:240px;color:#64748b;", I.appendChild(k), a.appendChild(p);
+    const A = document.createElement("div");
+    A.style.cssText = "flex:1 1 auto;min-height:0;display:flex;", A.appendChild(S), A.appendChild(I), a.appendChild(A), r.appendChild(a), document.body.appendChild(r), T = r, document.addEventListener("keydown", W), requestAnimationFrame(() => {
       a.style.transform = "translateX(0)";
     });
-    let j;
+    let P;
     try {
-      j = await oe(n, c), h.value = j && typeof j.size == "number" ? j.size : null, x();
-    } catch (s) {
-      w.textContent = "拉取文件失败：" + (s && s.message ? s.message : s) + "（点击关闭）", w.onclick = E, k("拉取失败", n, s);
+      P = await oe(n, s), g.value = P && typeof P.size == "number" ? P.size : null, v();
+    } catch (i) {
+      k.textContent = "拉取文件失败：" + (i && i.message ? i.message : i) + "（点击关闭）", k.onclick = q, y("拉取失败", n, i);
       return;
     }
     try {
-      R.removeChild(w);
-      const s = document.createElement("div");
-      s.style.cssText = "height:100%;min-height:0;", R.appendChild(s);
-      const y = Y[e] || "text";
-      if (!I[y]) {
-        const L = window.__QP_OFV_RENDERER_BASE__ || location.origin + "/api/frontend_plugin/" + Q + "/files/frontend/renderer/";
-        I[y] = import(
+      I.removeChild(k);
+      const i = document.createElement("div");
+      i.style.cssText = "height:100%;min-height:0;", I.appendChild(i);
+      const w = Y[e] || "text";
+      if (!j[w]) {
+        const U = window.__QP_OFV_RENDERER_BASE__ || location.origin + "/api/frontend_plugin/" + Q + "/files/frontend/renderer/";
+        j[w] = import(
           /* @vite-ignore */
-          L + y + ".js"
-        ).catch((A) => {
-          throw delete I[y], A;
+          U + w + ".js"
+        ).catch((F) => {
+          throw delete j[w], F;
         });
       }
-      const { renderViewer: he } = await I[y];
-      b = he({
-        container: s,
-        file: j,
+      const { renderViewer: me } = await j[w];
+      b = me({
+        container: i,
+        file: P,
         fileName: t,
         height: "100%",
         locale: "zh-CN",
         theme: "light",
-        onError: (L, A) => k("OFV 渲染错误", A && A.name, L)
-      }), _("已打开 OFV 预览:", t, "(" + e + ")", n), ne(s, v, i);
-    } catch (s) {
-      w.textContent = "OFV 渲染失败：" + (s && s.message ? s.message : s) + "（点击关闭）", w.onclick = E, k("OFV 渲染失败", s);
+        onError: (U, F) => y("OFV 渲染错误", F && F.name, U)
+      }), E("已打开 OFV 预览:", t, "(" + e + ")", n), ne(i, x, c), se(a, P, t);
+    } catch (i) {
+      k.textContent = "OFV 渲染失败：" + (i && i.message ? i.message : i) + "（点击关闭）", k.onclick = q, y("OFV 渲染失败", i);
     }
   }
-  function ae() {
+  function ce() {
     window.__QP_OFV_CAPTURE__ || (window.__QP_OFV_CAPTURE__ = !0, window.addEventListener(
       "qwenpaw:open-file-preview",
       (t) => {
         try {
-          const n = (t && t.detail || {}).target || {}, c = String(n.artifactUrl || ""), r = String(n.path || ""), a = X(r || c), f = V(a || c || r);
-          if (!z.has(f)) return;
+          const n = (t && t.detail || {}).target || {}, s = String(n.artifactUrl || ""), r = String(n.path || ""), a = X(r || s), p = V(a || s || r);
+          if (!O.has(p)) return;
           t.stopPropagation();
           try {
             t.stopImmediatePropagation();
           } catch {
           }
-          _("接管预览:", a, "(" + f + ") path=", r, "url=", c);
-          const l = H(r || c);
-          if (!l) {
-            k("无法归一化路径，放行");
+          E("接管预览:", a, "(" + p + ") path=", r, "url=", s);
+          const d = H(r || s);
+          if (!d) {
+            y("无法归一化路径，放行");
             return;
           }
-          G(a, f, l, c);
+          G(a, p, d, s);
         } catch (e) {
-          k("接管失败:", e);
+          y("接管失败:", e);
         }
       },
       !0
-    ), _("已安装预览接管监听"));
+    ), E("已安装预览接管监听"));
   }
-  const ie = new RegExp(
-    "([\\w@.\\-]+\\.(" + [...z].join("|") + "))(?![\\w-])",
+  const le = new RegExp(
+    "([\\w@.\\-]+\\.(" + [...O].join("|") + "))(?![\\w-])",
     "i"
-  ), ce = new RegExp(
-    "(\\/?[\\w@.\\-]+(?:\\/[\\w@.\\-]+)*\\.(" + [...z].join("|") + "))(?![\\w-])",
+  ), de = new RegExp(
+    "(\\/?[\\w@.\\-]+(?:\\/[\\w@.\\-]+)*\\.(" + [...O].join("|") + "))(?![\\w-])",
     "i"
   );
-  function le(t, e) {
+  function fe(t, e) {
     if (!t) return !1;
-    const n = t.getAttribute("title") || t.getAttribute("aria-label") || t.getAttribute("data-path") || "", c = (t.textContent || "").replace(/\s+/g, " ").trim(), r = (n + " " + c).trim();
+    const n = t.getAttribute("title") || t.getAttribute("aria-label") || t.getAttribute("data-path") || "", s = (t.textContent || "").replace(/\s+/g, " ").trim(), r = (n + " " + s).trim();
     let a = r;
     try {
       const o = decodeURIComponent(r);
       o.indexOf("�") === -1 && (a = o);
     } catch {
     }
-    const f = ie.exec(a);
-    if (!f) return !1;
-    const l = X(f[1]), m = V(l);
-    if (!z.has(m)) return !1;
-    let d = "";
-    const x = ce.exec(a);
-    x ? (d = x[1], d.startsWith("/") || (d = "/" + d)) : d = l;
+    const p = le.exec(a);
+    if (!p) return !1;
+    const d = X(p[1]), f = V(d);
+    if (!O.has(f)) return !1;
+    let l = "";
+    const v = de.exec(a);
+    v ? (l = v[1], l.startsWith("/") || (l = "/" + l)) : l = d;
     try {
-      const o = t.querySelector('a[href*="/files/preview/"], img[src*="/files/preview/"]'), i = o && (o.getAttribute("href") || o.getAttribute("src")) || "", u = J(i);
-      u && (d = u);
+      const o = t.querySelector('a[href*="/files/preview/"], img[src*="/files/preview/"]'), c = o && (o.getAttribute("href") || o.getAttribute("src")) || "", h = J(c);
+      h && (l = h);
     } catch {
     }
-    const h = H(d);
-    if (!h) return !1;
+    const g = H(l);
+    if (!g) return !1;
     if (e) {
       e.preventDefault(), e.stopPropagation();
       try {
@@ -531,9 +575,9 @@
       } catch {
       }
     }
-    return _("接管预览(DOM):", l, "(" + m + ") path=", h), G(l, m, h, ""), !0;
+    return E("接管预览(DOM):", d, "(" + f + ") path=", g), G(d, f, g, ""), !0;
   }
-  function de() {
+  function pe() {
     window.__QP_OFV_DOM__ || (window.__QP_OFV_DOM__ = !0, document.addEventListener(
       "click",
       (t) => {
@@ -542,33 +586,33 @@
           if (!e || !e.closest || e.closest("[data-qp-ofv-overlay]")) return;
           const n = e.closest('[class*="bubbleFile"]') || e.closest('[class*="ResponseArtifactList-module__file"]') || e.closest('[class*="ResponseArtifactList-module__details__"]');
           if (!n) return;
-          le(n, t);
+          fe(n, t);
         } catch (e) {
-          k("DOM 委托失败:", e);
+          y("DOM 委托失败:", e);
         }
       },
       !0
-    ), _("已安装 DOM 点击委托"));
+    ), E("已安装 DOM 点击委托"));
   }
-  const fe = "/api/frontend_plugin/" + Q + "/files/frontend/style.css";
-  function pe() {
+  const ue = "/api/frontend_plugin/" + Q + "/files/frontend/style.css";
+  function he() {
     if (document.querySelector("link[data-qp-ofv-style]")) return;
     const t = document.createElement("link");
-    t.rel = "stylesheet", t.href = fe, t.setAttribute("data-qp-ofv-style", "1"), document.head.appendChild(t);
+    t.rel = "stylesheet", t.href = ue, t.setAttribute("data-qp-ofv-style", "1"), document.head.appendChild(t);
   }
-  function M() {
-    pe(), ae(), de();
+  function D() {
+    he(), ce(), pe();
   }
   if (window.QwenPaw && window.QwenPaw.host)
-    M();
+    D();
   else {
     let t = 0;
     const e = setInterval(() => {
       if (window.QwenPaw && window.QwenPaw.host) {
-        clearInterval(e), M();
+        clearInterval(e), D();
         return;
       }
-      ++t > 40 && (clearInterval(e), M());
+      ++t > 40 && (clearInterval(e), D());
     }, 500);
   }
 })();

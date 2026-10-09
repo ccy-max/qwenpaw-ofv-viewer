@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.6.4";
+  const VERSION = "0.6.5";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -274,6 +274,58 @@
   const RENDERER_PROMISES = {};
   // 预览生命周期清理回调（观察者/定时器等，closeOverlay 时统一执行）
   const backdropCleanups = [];
+
+  /**
+   * 用我们持有的 blob 直接触发下载（不依赖 OFV 内部 download —— 真机上它
+   * 生成的是空文件，因为 OFV 持有的 file 引用与宿主 fetch 的 blob 不同步）。
+   */
+  function downloadCurrent(blob, name) {
+    if (!blob) { err("下载失败：没有可用的文件数据"); return; }
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name || "download";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        try { a.remove(); URL.revokeObjectURL(url); } catch (e) {}
+      }, 4000);
+      log("已触发下载:", name, blob.size, "bytes");
+    } catch (e) {
+      err("下载失败:", e);
+    }
+  }
+
+  /**
+   * 给预览里所有"下载"按钮挂上我们自己的下载逻辑。
+   * 用捕获阶段监听 + stopImmediatePropagation 抢在 OFV 的处理器之前执行。
+   */
+  function bindDownload(scope, blob, name) {
+    const attach = (btn) => {
+      if (btn.__qpOfvDl) return;
+      btn.__qpOfvDl = true;
+      btn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        try { ev.stopImmediatePropagation(); } catch (e) {}
+        downloadCurrent(blob, name);
+      }, true);
+    };
+    const scan = () => {
+      scope.querySelectorAll("button").forEach((b) => {
+        const label = (b.title || "") + (b.textContent || "");
+        if (/下载|download/i.test(label)) attach(b);
+      });
+    };
+    scan();
+    const obs = new MutationObserver(scan);
+    obs.observe(scope, { childList: true, subtree: true });
+    let tries = 0;
+    const timer = setInterval(() => { scan(); if (++tries > 30) { clearInterval(timer); obs.disconnect(); } }, 300);
+    backdropCleanups.push(() => { obs.disconnect(); clearInterval(timer); });
+  }
 
   function closeOverlay() {
     try { if (viewerInst && viewerInst.destroy) viewerInst.destroy(); } catch (e) {}
@@ -617,6 +669,8 @@
       // OFV 文本面板的「换行 / 复制 / 下载」是渲染后异步生成的
       // （.ofv-code-action），把它们搬到标题栏「在聊天中引用」右侧。
       hoistCodeActions(ofvBox, headRight, citeBtn);
+      // 接管所有下载按钮：用宿主 fetch 到的 blob 直接下载（OFV 自带下载会出空文件）
+      bindDownload(drawer, blob, name);
     } catch (e) {
       loading.textContent = "OFV 渲染失败：" + (e && e.message ? e.message : e) + "（点击关闭）";
       loading.onclick = closeOverlay;
