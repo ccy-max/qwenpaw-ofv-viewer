@@ -269,7 +269,7 @@
       o.style.cssText = "height:100%;min-height:0;", l.appendChild(o);
       const a = ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "rtf", "odt", "ods", "odp"].includes(t) ? "office" : ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"].includes(t) ? "archive" : ["eml", "msg", "mbox"].includes(t) ? "email" : "text";
       if (!_[a]) {
-        const d = window.__QP_OFV_RENDERER_BASE__ || "/api/frontend_plugin/" + S + "/files/frontend/renderer/";
+        const d = window.__QP_OFV_RENDERER_BASE__ || location.origin + "/api/frontend_plugin/" + S + "/files/frontend/renderer/";
         _[a] = import(
           /* @vite-ignore */
           d + a + ".js"

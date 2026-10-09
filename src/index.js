@@ -365,7 +365,10 @@
         : ["eml", "msg", "mbox"].includes(ext) ? "email"
         : "text";
       if (!RENDERER_PROMISES[family]) {
-        const base = window.__QP_OFV_RENDERER_BASE__ || "/api/frontend_plugin/" + PLUGIN_ID + "/files/frontend/renderer/";
+        // ⚠️ blob 模块上下文里根相对路径（"/api/..."）无法解析（blob 不按页面 base
+        // 解析 specifier，实测 "Failed to resolve module specifier"），必须全绝对 URL
+        const base = window.__QP_OFV_RENDERER_BASE__
+          || location.origin + "/api/frontend_plugin/" + PLUGIN_ID + "/files/frontend/renderer/";
         RENDERER_PROMISES[family] = import(/* @vite-ignore */ base + family + ".js").catch((e) => {
           delete RENDERER_PROMISES[family]; // 失败允许重试
           throw e;
