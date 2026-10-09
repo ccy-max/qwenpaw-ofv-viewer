@@ -10,20 +10,10 @@
  *  4. 全屏遮罩展示，Esc / 关闭按钮销毁
  *  5. 未接管格式放行原生预览
  */
-import {
-  createViewer,
-  imagePlugin,
-  officePlugin,
-  textPlugin,
-  archivePlugin,
-  emailPlugin,
-} from "@open-file-viewer/core";
-import "@open-file-viewer/core/style.css";
-
 (() => {
   "use strict";
 
-  const VERSION = "0.2.4";
+  const VERSION = "0.3.0";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -215,6 +205,8 @@ import "@open-file-viewer/core/style.css";
   // ================================================================
   let overlayEl = null;
   let viewerInst = null;
+  // 渲染器动态 import 缓存（按格式族；一次加载会话内复用，失败允许重试）
+  const RENDERER_PROMISES = {};
 
   function closeOverlay() {
     try { if (viewerInst && viewerInst.destroy) viewerInst.destroy(); } catch (e) {}
@@ -361,26 +353,32 @@ import "@open-file-viewer/core/style.css";
     }
 
     try {
-      if (typeof createViewer !== "function") throw new Error("OFV 未加载");
       body.removeChild(loading);
       // OFV 容器需要明确高度，同时让 body 滚动条接管
       const ofvBox = document.createElement("div");
       ofvBox.style.cssText = "height:100%;min-height:0;";
       body.appendChild(ofvBox);
-      viewerInst = createViewer({
+      // 手写分块：按扩展名族首次点开才拉对应渲染器（入口不含 OFV，硬刷新零重负载）
+      const family =
+        ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "rtf", "odt", "ods", "odp"].includes(ext) ? "office"
+        : ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"].includes(ext) ? "archive"
+        : ["eml", "msg", "mbox"].includes(ext) ? "email"
+        : "text";
+      if (!RENDERER_PROMISES[family]) {
+        const base = window.__QP_OFV_RENDERER_BASE__ || "/api/frontend_plugin/" + PLUGIN_ID + "/files/frontend/renderer/";
+        RENDERER_PROMISES[family] = import(/* @vite-ignore */ base + family + ".js").catch((e) => {
+          delete RENDERER_PROMISES[family]; // 失败允许重试
+          throw e;
+        });
+      }
+      const { renderViewer } = await RENDERER_PROMISES[family];
+      viewerInst = renderViewer({
         container: ofvBox,
         file: blob,
         fileName: name,
         height: "100%",
         locale: "zh-CN",
         theme: "light",
-        plugins: [
-          officePlugin(),
-          archivePlugin(),
-          emailPlugin(),
-          textPlugin(),
-          imagePlugin(),
-        ],
         onError: (e2, f) => err("OFV 渲染错误", f && f.name, e2),
       });
       log("已打开 OFV 预览:", name, "(" + ext + ")", path);

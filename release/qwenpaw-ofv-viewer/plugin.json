@@ -1,9 +1,9 @@
 {
   "id": "qwenpaw-ofv-viewer",
   "name": "OFV 万能文件预览",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "type": "frontend",
-  "description": "用 Open File Viewer (OFV) 接管对话文件卡片预览：Office 全格式（含 doc/xls/ppt 老格式、rtf、OpenDocument）、压缩包(zip/rar/7z/tar)、邮件(eml/msg/mbox)、文本/源码高亮。纯前端渲染，零后端依赖；未覆盖格式自动放行原生预览。v0.2.4: 右侧抽屉式预览 + 中文工具栏(zh-CN) + 可拖滚动条。",
+  "description": "用 Open File Viewer (OFV) 接管对话文件卡片预览：Office 全格式（含 doc/xls/ppt 老格式、rtf、OpenDocument）、压缩包(zip/rar/7z/tar)、邮件(eml/msg/mbox)、文本/源码高亮。纯前端渲染，零后端依赖；未覆盖格式自动放行原生预览。v0.3.0: 手写分块加载——首屏仅 ~15KB，按格式族按需拉取渲染器（office 4.3MB / text 5.3MB / email 0.8MB / archive 0.4MB），硬刷新零重负载。",
   "author": "Zero (QwenPaw assistant)",
   "entry": {
     "frontend": "frontend/index.js"
