@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.6.2";
+  const VERSION = "0.6.3";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -59,6 +59,15 @@
     const m = /\.([^.]+)$/.exec(String(name || ""));
     return m ? m[1].toLowerCase() : "";
   }
+  /** 人类可读文件大小（与 OFV 面板一致的风格：B / KB / MB） */
+  function formatSize(bytes) {
+    const n = Number(bytes);
+    if (!isFinite(n) || n < 0) return "";
+    if (n < 1024) return n + " B";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(n < 10240 ? 1 : 0) + " KB";
+    return (n / 1024 / 1024).toFixed(1) + " MB";
+  }
+
   function getBaseName(p) {
     const s = String(p || "");
     const i = Math.max(s.lastIndexOf("/"), s.lastIndexOf("\\"));
@@ -381,8 +390,9 @@
       "[data-qp-ofv-overlay] .ofv-code-action:nth-of-type(3)::before { content: '\\2913'; }",
       /* ---- 状态文字不挤按钮 ---- */
       "[data-qp-ofv-overlay] .ofv-code-status { flex: 0 1 auto; max-width: 220px; }",
-      /* 按钮已搬到标题栏：面板头部隐藏动作容器（含状态），避免留白 */
-      "[data-qp-ofv-overlay] .ofv-code-actions { display: none !important; }",
+      /* 按钮已搬到标题栏：面板头整体隐藏（文件名/格式/行数/大小 已在抽屉标题展示，
+         避免与标题栏重复出现两处文件名） */
+      "[data-qp-ofv-overlay] .ofv-code-header { display: none !important; }",
     ].join("\n");
     document.head.appendChild(st);
   }
@@ -413,9 +423,26 @@
     header.style.cssText =
       "flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;" +
       "padding:12px 16px;border-bottom:1px solid #e2e8f0;background:#fff;";
+    // 标题：第一行文件名，第二行元信息（格式 · 大小）——由 updateTitleMeta() 填充
     const title = document.createElement("div");
-    title.style.cssText = "font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
-    title.textContent = name + " · 预览";
+    title.style.cssText = "min-width:0;overflow:hidden;";
+    const titleName = document.createElement("div");
+    titleName.textContent = name;
+    titleName.style.cssText =
+      "font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+    const titleMeta = document.createElement("div");
+    titleMeta.style.cssText =
+      "font-size:11.5px;color:#94a3b8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+    title.appendChild(titleName);
+    title.appendChild(titleMeta);
+    // blob 就绪后展示大小（与 OFV 面板头信息一致：格式 · 大小）
+    const updateTitleMeta = () => {
+      const bits = [];
+      if (ext) bits.push(ext.toUpperCase());
+      if (blobRef.value != null) bits.push(formatSize(blobRef.value));
+      titleMeta.textContent = bits.join(" · ");
+    };
+    const blobRef = { value: null };
     const btn = document.createElement("button");
     btn.textContent = "✕";
     btn.title = "关闭 (Esc)";
@@ -545,6 +572,8 @@
     let blob;
     try {
       blob = await fetchBlob(path, artifactUrl);
+      blobRef.value = blob;
+      updateTitleMeta();
     } catch (e) {
       loading.textContent = "拉取文件失败：" + (e && e.message ? e.message : e) + "（点击关闭）";
       loading.onclick = closeOverlay;
