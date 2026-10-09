@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 export default defineConfig({
   build: {
     outDir: "dist",
-    emptyOutDir: true,
+    emptyOutDir: false,
     lib: {
       entry: resolve(__dirname, "src/index.js"),
       formats: ["es"],

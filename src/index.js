@@ -13,14 +13,16 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.3.0";
+  const VERSION = "0.4.0";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
-  // 原生预览已支持的：png/jpg/jpeg/gif/webp/svg/ico/bmp/pdf/md/mdx/html/htm/csv —— 一律放行
-  // OFV officePlugin 覆盖（原生不支持）：doc/docx/xls/xlsx/ppt/pptx/rtf/odt/ods/odp
+  // 原生预览已支持的：png/jpg/jpeg/gif/webp/svg/ico/bmp/md/mdx/html/htm/csv —— 一律放行
+  // v0.4.0：pdf 从原生 <embed> 改为 OFV 接管（可缩放/目录/搜索，worker 自托管不走 CDN）
   // OFV 其他插件：zip/rar/7z/tar/gz（archive）、eml/msg/mbox（email）、文本/源码（text）
   const OFV_EXTS = new Set([
+    // pdf（v0.4.0 接管）
+    "pdf",
     // office（含老格式，原生都不支持）
     "doc", "docx", "xls", "xlsx", "ppt", "pptx", "rtf", "odt", "ods", "odp",
     // 压缩包
@@ -31,6 +33,24 @@
     "txt", "log", "json", "yaml", "yml", "toml", "ini", "conf",
     "py", "js", "ts", "tsx", "jsx", "java", "go", "rs", "c", "cpp", "h", "sh", "sql", "xml",
   ]);
+
+  // 扩展名 → 渲染器 chunk 路由（v0.4.0 细拆：点 docx 不再被迫下载 xlsx/pptx 解析器）
+  const EXT_RENDERER = (() => {
+    const m = {};
+    const put = (renderer, exts) => exts.forEach((e) => (m[e] = renderer));
+    put("office", ["docx", "docm", "dotx", "dotm", "rtf", "odt", "fodt"]);
+    put("sheet", ["xlsx", "xlsm", "xlsb", "xls", "ods", "fods"]);
+    put("ppt", ["pptx", "pptm", "ppsx", "ppsm", "potx", "potm", "odp", "fodp"]);
+    put("legacy", ["doc", "dot", "ppt", "pps"]); // 老二进制格式走 emf/转换路径
+    put("pdf", ["pdf"]);
+    put("archive", ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"]);
+    put("email", ["eml", "msg", "mbox"]);
+    put("plain", ["txt", "log", "conf", "ini", "env", "properties", "md"]);
+    put("text", ["json", "yaml", "yml", "toml", "xml", "py", "js", "ts", "tsx", "jsx",
+      "java", "go", "rs", "c", "cpp", "h", "hpp", "sh", "bash", "sql", "rb", "php",
+      "swift", "kt", "cs", "proto", "hcl", "tf", "dockerfile", "makefile"]);
+    return m;
+  })();
 
   const log = (...a) => { try { console.log(TAG, VERSION, ...a); } catch (e) {} };
   const err = (...a) => { try { console.error(TAG, VERSION, ...a); } catch (e) {} };
@@ -224,6 +244,38 @@
   }
   function onKey(ev) { if (ev.key === "Escape") closeOverlay(); }
 
+  // ================================================================
+  // 「在聊天中引用」—— 复刻宿主原预览行为（逆向 index-x-DPAHiB.js 的 au()）：
+  // 往 sender textarea 光标处插入 "@ <path>"，聚焦并定位光标。
+  // ================================================================
+  function mentionInChat(path) {
+    const textarea = document.querySelector('[class*="sender"] textarea');
+    if (!textarea) {
+      err("未找到聊天输入框，引用失败");
+      return false;
+    }
+    const text = "@ " + String(path || "");
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+    const before = textarea.value.slice(0, start);
+    const after = textarea.value.slice(end);
+    const sep = before && !/\s$/.test(before) ? " " : "";
+    const next = before + sep + text + " " + after;
+    // React 受控组件：走原生 setter 触发 onChange
+    const proto = Object.getPrototypeOf(textarea);
+    const desc = Object.getOwnPropertyDescriptor(proto, "value");
+    if (desc && desc.set) desc.set.call(textarea, next);
+    else textarea.value = next;
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    const caret = before.length + sep.length + text.length + 1;
+    requestAnimationFrame(() => {
+      textarea.focus();
+      try { textarea.setSelectionRange(caret, caret); } catch (e) {}
+    });
+    log("已引用到聊天:", text);
+    return true;
+  }
+
   // 一次性注入插件样式：工具栏按钮加图标、滚动条可见可拖、按钮中文化微调
   function ensureUiStyle() {
     if (document.getElementById("qp-ofv-style")) return;
@@ -322,8 +374,25 @@
     btn.onmouseenter = () => { btn.style.background = "#e2e8f0"; };
     btn.onmouseleave = () => { btn.style.background = "#f1f5f9"; };
     btn.onclick = closeOverlay;
+    // 「在聊天中引用」按钮（复刻宿主原预览 mentionInChat）
+    const citeBtn = document.createElement("button");
+    citeBtn.textContent = "在聊天中引用";
+    citeBtn.title = "以 @ 路径的形式插入到聊天输入框";
+    citeBtn.style.cssText =
+      "border:1px solid #e2e8f0;background:#fff;color:#334155;height:28px;" +
+      "padding:0 10px;border-radius:6px;cursor:pointer;font-size:12.5px;" +
+      "margin-right:8px;line-height:1;";
+    citeBtn.onmouseenter = () => { citeBtn.style.background = "#f1f5f9"; };
+    citeBtn.onmouseleave = () => { citeBtn.style.background = "#fff"; };
+    citeBtn.onclick = () => {
+      if (mentionInChat(path)) closeOverlay();
+    };
+    const headRight = document.createElement("div");
+    headRight.style.cssText = "display:flex;align-items:center;";
+    headRight.appendChild(citeBtn);
+    headRight.appendChild(btn);
     header.appendChild(title);
-    header.appendChild(btn);
+    header.appendChild(headRight);
 
     const body = document.createElement("div");
     body.style.cssText = "flex:1 1 auto;min-height:0;overflow:auto;padding:12px;";
@@ -359,11 +428,9 @@
       ofvBox.style.cssText = "height:100%;min-height:0;";
       body.appendChild(ofvBox);
       // 手写分块：按扩展名族首次点开才拉对应渲染器（入口不含 OFV，硬刷新零重负载）
-      const family =
-        ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "rtf", "odt", "ods", "odp"].includes(ext) ? "office"
-        : ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"].includes(ext) ? "archive"
-        : ["eml", "msg", "mbox"].includes(ext) ? "email"
-        : "text";
+      // v0.4.0 细路由：docx/xlsx/pptx/老格式各自独立 chunk；大库（xlsx/pptx/prism/pdfjs…）
+      // 由渲染器运行时按需从 renderer-libs/ 拉取
+      const family = EXT_RENDERER[ext] || "text";
       if (!RENDERER_PROMISES[family]) {
         // ⚠️ blob 模块上下文里根相对路径（"/api/..."）无法解析（blob 不按页面 base
         // 解析 specifier，实测 "Failed to resolve module specifier"），必须全绝对 URL
