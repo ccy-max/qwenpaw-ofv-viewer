@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.5.1";
+  const VERSION = "0.6.0";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -220,6 +220,42 @@
     throw new Error("拉取失败（已试 " + tried.size + " 个候选）最后: " + lastErr);
   }
 
+  /**
+   * 把 OFV 文本面板的按钮（换行/复制/下载，类名 .ofv-code-action）
+   * 搬到抽屉标题栏，插到「在聊天中引用」按钮右侧。
+   * OFV 面板异步渲染 → 用 MutationObserver 等它出现；搬运后加标记防重复。
+   */
+  function hoistCodeActions(scope, headRight, anchorBtn) {
+    let moved = false;
+    const collect = () => {
+      if (moved) return true;
+      const actions = scope.querySelectorAll(".ofv-code-action");
+      if (!actions.length) return false;
+      // 按原顺序插入到 anchor（在聊天中引用）之后
+      let ref = anchorBtn.nextSibling;
+      actions.forEach((el) => {
+        el.setAttribute("data-qp-ofv-hoisted", "1");
+        el.style.cssText += "margin-left:8px;";
+        headRight.insertBefore(el, ref);
+      });
+      moved = true;
+      return true;
+    };
+    if (collect()) return;
+    const obs = new MutationObserver(() => {
+      if (collect()) obs.disconnect();
+    });
+    obs.observe(scope, { childList: true, subtree: true });
+    // 兜底：OFV 渲染较慢时再轮询几次
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (collect() || ++tries > 40) { clearInterval(timer); obs.disconnect(); }
+    }, 250);
+    // 预览关闭时清理观察者
+    const cleanup = () => { obs.disconnect(); clearInterval(timer); };
+    backdropCleanups.push(cleanup);
+  }
+
   // ================================================================
   // 全屏遮罩 + OFV 渲染
   // ================================================================
@@ -227,6 +263,8 @@
   let viewerInst = null;
   // 渲染器动态 import 缓存（按格式族；一次加载会话内复用，失败允许重试）
   const RENDERER_PROMISES = {};
+  // 预览生命周期清理回调（观察者/定时器等，closeOverlay 时统一执行）
+  const backdropCleanups = [];
 
   function closeOverlay() {
     try { if (viewerInst && viewerInst.destroy) viewerInst.destroy(); } catch (e) {}
@@ -241,6 +279,10 @@
     }
     overlayEl = null;
     try { document.removeEventListener("keydown", onKey); } catch (e) {}
+    // 清理本轮预览的观察者/定时器
+    while (backdropCleanups.length) {
+      try { backdropCleanups.pop()(); } catch (e) {}
+    }
   }
   function onKey(ev) { if (ev.key === "Escape") closeOverlay(); }
 
@@ -316,11 +358,16 @@
       "  background: #f1f5f9;",
       "}",
       /* ---- 工具栏按钮图标（换行/复制/下载）---- */
-      "[data-qp-ofv-overlay] .ofv-code-action {",
+      /* 注：这些按钮已由 hoistCodeActions() 搬到抽屉标题栏，
+         与「在聊天中引用」同一行；此处统一其外观与标题栏按钮一致 */
+      "[data-qp-ofv-overlay] .ofv-code-action,",
+      "[data-qp-ofv-hoisted].ofv-code-action {",
       "  display: inline-flex; align-items: center; gap: 5px;",
-      "  padding: 0 10px; font-size: 12.5px; min-height: 30px;",
-      "  vertical-align: middle;",
+      "  height: 28px; padding: 0 10px; font-size: 12.5px;",
+      "  border: 1px solid #e2e8f0; background: #fff; color: #334155;",
+      "  border-radius: 6px; cursor: pointer; line-height: 1;",
       "}",
+      "[data-qp-ofv-hoisted].ofv-code-action:hover { background: #f1f5f9; }",
       "[data-qp-ofv-overlay] .ofv-code-action::before {",
       "  font-size: 11px; line-height: 1; font-style: normal;",
       "  margin-top: -0.5px;",
@@ -331,6 +378,8 @@
       "[data-qp-ofv-overlay] .ofv-code-action:nth-of-type(3)::before { content: '\\2913'; }",
       /* ---- 状态文字不挤按钮 ---- */
       "[data-qp-ofv-overlay] .ofv-code-status { flex: 0 1 auto; max-width: 220px; }",
+      /* 按钮已搬到标题栏：面板头部隐藏动作容器（含状态），避免留白 */
+      "[data-qp-ofv-overlay] .ofv-code-actions { display: none !important; }",
     ].join("\n");
     document.head.appendChild(st);
   }
@@ -531,6 +580,10 @@
         onError: (e2, f) => err("OFV 渲染错误", f && f.name, e2),
       });
       log("已打开 OFV 预览:", name, "(" + ext + ")", path);
+
+      // OFV 文本面板的「换行 / 复制 / 下载」是渲染后异步生成的
+      // （.ofv-code-action），把它们搬到标题栏「在聊天中引用」右侧。
+      hoistCodeActions(ofvBox, headRight, citeBtn);
     } catch (e) {
       loading.textContent = "OFV 渲染失败：" + (e && e.message ? e.message : e) + "（点击关闭）";
       loading.onclick = closeOverlay;
