@@ -64,6 +64,8 @@ for (const r of renderers) {
 // ③ pdf.js worker 拷贝（自托管，不走 jsdelivr CDN）
 mkdirSync("dist/renderer-libs", { recursive: true });
 execSync("cp dist-libs/*.js dist/renderer-libs/");
+// style.css：入口构建不再产出（v0.4.0 起由渲染器构建产出），拷到 dist 根供入口 ensureStyle() 加载
+execSync("cp dist/renderer/style.css dist/style.css");
 if (existsSync("node_modules/pdfjs-dist/build/pdf.worker.min.mjs")) {
   execSync("cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs dist/renderer-libs/pdf.worker.mjs");
   console.log("pdf.worker.mjs 已拷贝");
