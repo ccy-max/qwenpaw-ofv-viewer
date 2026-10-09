@@ -1,0 +1,9 @@
+# 依赖（npm install 可重建）
+node_modules/
+
+# 构建中间产物（npm run build 可重建）
+dist/
+
+# OS / 编辑器
+.DS_Store
+*.swp
