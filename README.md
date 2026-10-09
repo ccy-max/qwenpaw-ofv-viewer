@@ -1,6 +1,6 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.2.4）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.3.0）｜插件 ID：`qwenpaw-ofv-viewer`
 
 在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（pdf / 图片 / md / html / csv 等）自动放行回原生预览。
 
@@ -121,7 +121,7 @@ qwenpaw plugin list
 应看到：
 
 ```
-• OFV 万能文件预览 (v0.2.4)
+• OFV 万能文件预览 (v0.3.0)
   ID: qwenpaw-ofv-viewer
 ```
 
@@ -170,6 +170,14 @@ Vite 单文件 bundle 体积大，加：`NODE_OPTIONS=--max-old-space-size=3072 
 ---
 
 ## 版本更新摘要
+
+### v0.3.0 (2026-10-09)
+
+- **手写分块加载**：首屏从 11MB 单文件降到 ~15KB 入口；按格式族拆 4 个自包含渲染器，首次点开对应格式才按需下载并会话内缓存
+  - `office.js` 4.3MB（doc/docx/xls/xlsx/ppt/pptx/rtf/odt/ods/odp）、`text.js` 5.3MB（文本/源码高亮）、`email.js` 0.8MB（eml/msg/mbox）、`archive.js` 0.4MB（zip/rar/7z/tar/gz）
+- **关键取舍**：OFV 内部用裸包名动态 import（three/xlsx/utif/prismjs…），rollup 多 chunk 模式会把它们摇掉 → 各渲染器独立构建 `inlineDynamicImports` 保证自包含
+- **blob 模块限制两连**：①入口零依赖（blob: 上下文相对 import 无法解析）；②blob 内动态 import 根相对路径（`/api/...`）必炸 `Failed to resolve module specifier` → 渲染器 URL 必须 `location.origin` 全绝对
+- 构建改为 `build-all.mjs` 串行：入口 + 4 渲染器各自构建
 
 ### v0.2.4 (2026-10-09)
 
