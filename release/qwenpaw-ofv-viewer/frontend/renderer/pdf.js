@@ -6201,7 +6201,7 @@ var Fa = {
   "application/avro": "avro"
 };
 new Set(Object.keys(Fa));
-const Da = "/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/pdf.worker.mjs", Ba = { zoom: !0, search: !0, print: !0, download: !0 };
+const Da = "/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/pdf.worker.mjs", Ba = { search: !0, print: !0, download: !0 };
 function Ua(t) {
   return Mi({
     ...t,

@@ -1,5 +1,5 @@
 (() => {
-  const D = "0.5.0", M = "[ofv-viewer]", L = "qwenpaw-ofv-viewer", T = /* @__PURE__ */ new Set([
+  const D = "0.5.1", M = "[ofv-viewer]", L = "qwenpaw-ofv-viewer", T = /* @__PURE__ */ new Set([
     // pdf（v0.4.0 接管）
     "pdf",
     // office（含老格式，原生都不支持）

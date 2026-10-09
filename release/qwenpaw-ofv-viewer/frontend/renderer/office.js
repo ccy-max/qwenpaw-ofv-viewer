@@ -17935,20 +17935,7 @@ var _k = {
   "application/avro": "avro"
 };
 new Set(Object.keys(_k));
-const Ak = {
-  zoom: !0,
-  // 缩放
-  search: !0,
-  // 搜索
-  print: !0,
-  // 打印
-  download: !0,
-  // 下载
-  rotate: !1,
-  // 文档无需旋转
-  fullscreen: !1
-  // 全屏用我们抽屉自己的按钮（更可控）
-};
+const Ak = { search: !0, print: !0, download: !0 };
 function $8(e) {
   return b2({ ...e, toolbar: Ak, plugins: [__()] });
 }
