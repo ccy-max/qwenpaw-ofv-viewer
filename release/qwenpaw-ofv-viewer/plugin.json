@@ -1,7 +1,7 @@
 {
   "id": "qwenpaw-ofv-viewer",
   "name": "OFV 万能文件预览",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "type": "frontend",
   "description": "用 Open File Viewer (OFV) 接管对话文件卡片预览：Office/PDF/压缩包/邮件/文本源码。v0.5.0: 按格式定制工具栏（office/表格/演示/PDF 开缩放+搜索+打印+下载；文本/邮件开搜索+下载）+ 抽屉标题栏「全屏」按钮 + 分页格式「☰ 目录」页码导航（上一页/下一页/跳转），纯前端零后端。",
   "author": "Zero (QwenPaw assistant)",

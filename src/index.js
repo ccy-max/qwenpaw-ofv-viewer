@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.6.3";
+  const VERSION = "0.6.4";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -572,7 +572,8 @@
     let blob;
     try {
       blob = await fetchBlob(path, artifactUrl);
-      blobRef.value = blob;
+      // ⚠️ formatSize 需要字节数而非 Blob 对象（曾传 blob 本身导致大小恒空）
+      blobRef.value = blob && typeof blob.size === "number" ? blob.size : null;
       updateTitleMeta();
     } catch (e) {
       loading.textContent = "拉取文件失败：" + (e && e.message ? e.message : e) + "（点击关闭）";

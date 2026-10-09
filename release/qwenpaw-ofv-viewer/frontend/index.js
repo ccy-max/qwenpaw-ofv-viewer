@@ -1,5 +1,5 @@
 (() => {
-  const N = "0.6.3", U = "[ofv-viewer]", Q = "qwenpaw-ofv-viewer", j = /* @__PURE__ */ new Set([
+  const N = "0.6.4", U = "[ofv-viewer]", Q = "qwenpaw-ofv-viewer", z = /* @__PURE__ */ new Set([
     // pdf（v0.4.0 接管）
     "pdf",
     // office（含老格式，原生都不支持）
@@ -216,10 +216,10 @@
     }, 250), m = () => {
       a.disconnect(), clearInterval(l);
     };
-    A.push(m);
+    F.push(m);
   }
   let P = null, b = null;
-  const I = {}, A = [];
+  const I = {}, F = [];
   function E() {
     try {
       b && b.destroy && b.destroy();
@@ -236,9 +236,9 @@
       document.removeEventListener("keydown", W);
     } catch {
     }
-    for (; A.length; )
+    for (; F.length; )
       try {
-        A.pop()();
+        F.pop()();
       } catch {
       }
   }
@@ -410,20 +410,20 @@
         }
       }, 250);
     }
-    const M = C.querySelector('[data-toc="page"]');
+    const D = C.querySelector('[data-toc="page"]');
     let S = 1;
-    const D = (s) => {
+    const B = (s) => {
       if (!b || typeof b.goToPage != "function") return !1;
       const y = b.goToPage(s);
       return y && (S = s), y;
     };
     C.querySelector('[data-toc="prev"]').onclick = () => {
-      D(Math.max(1, S - 1)) && (M.value = S);
+      B(Math.max(1, S - 1)) && (D.value = S);
     }, C.querySelector('[data-toc="next"]').onclick = () => {
-      D(S + 1) && (M.value = S);
+      B(S + 1) && (D.value = S);
     }, C.querySelector('[data-toc="go"]').onclick = () => {
-      const s = parseInt(M.value, 10);
-      s > 0 && D(s);
+      const s = parseInt(D.value, 10);
+      s > 0 && B(s);
     };
     const R = document.createElement("div");
     R.style.cssText = "flex:1 1 auto;min-height:0;overflow:auto;padding:12px;";
@@ -433,9 +433,9 @@
     O.style.cssText = "flex:1 1 auto;min-height:0;display:flex;", O.appendChild(T), O.appendChild(R), a.appendChild(O), r.appendChild(a), document.body.appendChild(r), P = r, document.addEventListener("keydown", W), requestAnimationFrame(() => {
       a.style.transform = "translateX(0)";
     });
-    let B;
+    let j;
     try {
-      B = await oe(n, c), h.value = B, x();
+      j = await oe(n, c), h.value = j && typeof j.size == "number" ? j.size : null, x();
     } catch (s) {
       w.textContent = "拉取文件失败：" + (s && s.message ? s.message : s) + "（点击关闭）", w.onclick = E, k("拉取失败", n, s);
       return;
@@ -450,19 +450,19 @@
         I[y] = import(
           /* @vite-ignore */
           L + y + ".js"
-        ).catch((z) => {
-          throw delete I[y], z;
+        ).catch((A) => {
+          throw delete I[y], A;
         });
       }
       const { renderViewer: he } = await I[y];
       b = he({
         container: s,
-        file: B,
+        file: j,
         fileName: t,
         height: "100%",
         locale: "zh-CN",
         theme: "light",
-        onError: (L, z) => k("OFV 渲染错误", z && z.name, L)
+        onError: (L, A) => k("OFV 渲染错误", A && A.name, L)
       }), _("已打开 OFV 预览:", t, "(" + e + ")", n), ne(s, v, i);
     } catch (s) {
       w.textContent = "OFV 渲染失败：" + (s && s.message ? s.message : s) + "（点击关闭）", w.onclick = E, k("OFV 渲染失败", s);
@@ -474,7 +474,7 @@
       (t) => {
         try {
           const n = (t && t.detail || {}).target || {}, c = String(n.artifactUrl || ""), r = String(n.path || ""), a = X(r || c), f = V(a || c || r);
-          if (!j.has(f)) return;
+          if (!z.has(f)) return;
           t.stopPropagation();
           try {
             t.stopImmediatePropagation();
@@ -495,10 +495,10 @@
     ), _("已安装预览接管监听"));
   }
   const ie = new RegExp(
-    "([\\w@.\\-]+\\.(" + [...j].join("|") + "))(?![\\w-])",
+    "([\\w@.\\-]+\\.(" + [...z].join("|") + "))(?![\\w-])",
     "i"
   ), ce = new RegExp(
-    "(\\/?[\\w@.\\-]+(?:\\/[\\w@.\\-]+)*\\.(" + [...j].join("|") + "))(?![\\w-])",
+    "(\\/?[\\w@.\\-]+(?:\\/[\\w@.\\-]+)*\\.(" + [...z].join("|") + "))(?![\\w-])",
     "i"
   );
   function le(t, e) {
@@ -513,7 +513,7 @@
     const f = ie.exec(a);
     if (!f) return !1;
     const l = X(f[1]), m = V(l);
-    if (!j.has(m)) return !1;
+    if (!z.has(m)) return !1;
     let d = "";
     const x = ce.exec(a);
     x ? (d = x[1], d.startsWith("/") || (d = "/" + d)) : d = l;
@@ -556,19 +556,19 @@
     const t = document.createElement("link");
     t.rel = "stylesheet", t.href = fe, t.setAttribute("data-qp-ofv-style", "1"), document.head.appendChild(t);
   }
-  function F() {
+  function M() {
     pe(), ae(), de();
   }
   if (window.QwenPaw && window.QwenPaw.host)
-    F();
+    M();
   else {
     let t = 0;
     const e = setInterval(() => {
       if (window.QwenPaw && window.QwenPaw.host) {
-        clearInterval(e), F();
+        clearInterval(e), M();
         return;
       }
-      ++t > 40 && (clearInterval(e), F());
+      ++t > 40 && (clearInterval(e), M());
     }, 500);
   }
 })();
