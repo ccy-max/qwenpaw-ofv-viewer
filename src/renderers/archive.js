@@ -2,6 +2,9 @@
 import { createViewer, archivePlugin } from "@open-file-viewer/core";
 import "@open-file-viewer/core/style.css";
 
+// 压缩包：下载（列表内浏览无需搜索/缩放）
+const TOOLBAR = { download: true };
+
 export function renderViewer(opts) {
-  return createViewer({ ...opts, plugins: [archivePlugin()] });
+  return createViewer({ ...opts, toolbar: TOOLBAR, plugins: [archivePlugin()] });
 }

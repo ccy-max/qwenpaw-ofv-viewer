@@ -2,6 +2,8 @@
 import { createViewer, emailPlugin } from "@open-file-viewer/core";
 import "@open-file-viewer/core/style.css";
 
+const TOOLBAR = { search: true, download: true };
+
 export function renderViewer(opts) {
-  return createViewer({ ...opts, plugins: [emailPlugin()] });
+  return createViewer({ ...opts, toolbar: TOOLBAR, plugins: [emailPlugin()] });
 }

@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.4.0";
+  const VERSION = "0.5.0";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -387,12 +387,87 @@
     citeBtn.onclick = () => {
       if (mentionInChat(path)) closeOverlay();
     };
+    // ---- 目录/页码导航按钮（分页格式 docx/pdf/pptx 才有意义）----
+    const PAGED = ["pdf", "docx", "docm", "dotx", "dotm", "rtf", "odt", "fodt",
+      "pptx", "pptm", "ppsx", "ppsm", "potx", "potm", "odp", "fodp", "doc", "ppt",
+      "xlsx", "xls", "ods"];
+    const isPaged = PAGED.includes(ext);
+    const tocBtn = document.createElement("button");
+    tocBtn.textContent = "☰ 目录";
+    tocBtn.title = "显示/隐藏页码导航";
+    tocBtn.style.cssText = citeBtn.style.cssText;
+    tocBtn.onmouseenter = () => { tocBtn.style.background = "#f1f5f9"; };
+    tocBtn.onmouseleave = () => { tocBtn.style.background = "#fff"; };
+    tocBtn.onclick = () => { toggleToc(!tocOpen); };
+
+    // ---- 全屏按钮（放关闭按钮旁）----
+    const fsBtn = document.createElement("button");
+    fsBtn.textContent = "⛶";
+    fsBtn.title = "全屏 / 退出全屏";
+    fsBtn.style.cssText =
+      "border:0;background:#f1f5f9;color:#475569;width:28px;height:28px;" +
+      "border-radius:6px;cursor:pointer;font-size:14px;line-height:1;" +
+      "display:flex;align-items:center;justify-content:center;margin-right:8px;";
+    fsBtn.onclick = () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else if (drawer.requestFullscreen) drawer.requestFullscreen().catch(() => {});
+    };
+
     const headRight = document.createElement("div");
     headRight.style.cssText = "display:flex;align-items:center;";
     headRight.appendChild(citeBtn);
+    if (isPaged) headRight.appendChild(tocBtn);
+    headRight.appendChild(fsBtn);
     headRight.appendChild(btn);
     header.appendChild(title);
     header.appendChild(headRight);
+
+    // ---- 侧栏：页码导航（"目录"）—— 仅在分页格式下由 header 按钮开关 ----
+    let tocOpen = false;
+    const tocPanel = document.createElement("div");
+    tocPanel.style.cssText =
+      "flex:0 0 auto;width:0;overflow:hidden;transition:width .22s ease;" +
+      "border-right:0 solid #e2e8f0;background:#f8fafc;";
+    const tocInner = document.createElement("div");
+    tocInner.style.cssText = "width:200px;padding:12px;box-sizing:border-box;height:100%;overflow:auto;";
+    tocInner.innerHTML =
+      '<div style="font-size:12px;color:#64748b;margin-bottom:8px">页面导航</div>' +
+      '<div style="display:flex;gap:6px;margin-bottom:10px">' +
+      '<button data-toc="prev" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">上一页</button>' +
+      '<button data-toc="next" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">下一页</button>' +
+      "</div>" +
+      '<div style="display:flex;gap:6px;align-items:center">' +
+      '<input data-toc="page" type="number" min="1" style="width:64px;height:28px;border:1px solid #e2e8f0;border-radius:6px;padding:0 6px">' +
+      '<button data-toc="go" style="height:28px;padding:0 10px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">跳转</button>' +
+      "</div>" +
+      '<div data-toc="tip" style="margin-top:10px;font-size:11.5px;color:#94a3b8;line-height:1.5">' +
+      "提示：也可直接用工具栏的缩放与搜索</div>";
+    tocPanel.appendChild(tocInner);
+
+    function toggleToc(open) {
+      tocOpen = open;
+      tocPanel.style.width = open ? "200px" : "0";
+      tocPanel.style.borderRightWidth = open ? "1px" : "0";
+      tocBtn.style.background = open ? "#e2e8f0" : "#fff";
+      // 尺寸变化后让 OFV 重排（它有 resize 接口）
+      setTimeout(() => { try { if (viewerInst && viewerInst.resize) viewerInst.resize(); } catch (e) {} }, 250);
+    }
+
+    // 页码操作：走 OFV 的 goToPage（1-based，非分页格式返回 false）
+    const pageInput = tocInner.querySelector('[data-toc="page"]');
+    let curPage = 1;
+    const gotoPage = (p) => {
+      if (!viewerInst || typeof viewerInst.goToPage !== "function") return false;
+      const ok = viewerInst.goToPage(p);
+      if (ok) curPage = p;
+      return ok;
+    };
+    tocInner.querySelector('[data-toc="prev"]').onclick = () => { if (gotoPage(Math.max(1, curPage - 1))) pageInput.value = curPage; };
+    tocInner.querySelector('[data-toc="next"]').onclick = () => { if (gotoPage(curPage + 1)) pageInput.value = curPage; };
+    tocInner.querySelector('[data-toc="go"]').onclick = () => {
+      const v = parseInt(pageInput.value, 10);
+      if (v > 0) gotoPage(v);
+    };
 
     const body = document.createElement("div");
     body.style.cssText = "flex:1 1 auto;min-height:0;overflow:auto;padding:12px;";
@@ -402,7 +477,11 @@
     body.appendChild(loading);
 
     drawer.appendChild(header);
-    drawer.appendChild(body);
+    const contentRow = document.createElement("div");
+    contentRow.style.cssText = "flex:1 1 auto;min-height:0;display:flex;";
+    contentRow.appendChild(tocPanel);
+    contentRow.appendChild(body);
+    drawer.appendChild(contentRow);
     backdrop.appendChild(drawer);
     document.body.appendChild(backdrop);
     overlayEl = backdrop;

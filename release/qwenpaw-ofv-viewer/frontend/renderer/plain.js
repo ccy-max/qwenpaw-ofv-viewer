@@ -6500,7 +6500,7 @@ async function Ja(t) {
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
       break;
     case "tsx":
-      await Promise.resolve().then(() => yo);
+      await Promise.resolve().then(() => wo);
       break;
     case "python":
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
@@ -6509,7 +6509,7 @@ async function Ja(t) {
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
       break;
     case "json5":
-      await Promise.resolve().then(() => wo);
+      await Promise.resolve().then(() => xo);
       break;
     case "yaml":
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
@@ -6590,7 +6590,7 @@ async function Ja(t) {
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
       break;
     case "scala":
-      await Promise.resolve().then(() => xo);
+      await Promise.resolve().then(() => ko);
       break;
     case "lua":
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
@@ -6626,7 +6626,7 @@ async function Ja(t) {
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
       break;
     case "cpp":
-      await Promise.resolve().then(() => ko);
+      await Promise.resolve().then(() => Eo);
       break;
     case "scss":
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
@@ -6638,7 +6638,7 @@ async function Ja(t) {
       await import("/api/frontend_plugin/qwenpaw-ofv-viewer/files/frontend/renderer-libs/prism-all.js");
       break;
     case "php":
-      await Promise.resolve().then(() => Eo);
+      await Promise.resolve().then(() => So);
       break;
   }
 }
@@ -6889,12 +6889,11 @@ var _o = {
   "application/avro": "avro"
 };
 new Set(Object.keys(_o));
-function Io(t) {
-  return Ji({ ...t, plugins: [Ya()] });
+const yo = { search: !0, download: !0 };
+function Fo(t) {
+  return Ji({ ...t, toolbar: yo, plugins: [Ya()] });
 }
-const yo = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-  __proto__: null
-}, Symbol.toStringTag, { value: "Module" })), wo = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const wo = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null
 }, Symbol.toStringTag, { value: "Module" })), xo = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null
@@ -6902,7 +6901,9 @@ const yo = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null
 }, Symbol.toStringTag, { value: "Module" })), Eo = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null
+}, Symbol.toStringTag, { value: "Module" })), So = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null
 }, Symbol.toStringTag, { value: "Module" }));
 export {
-  Io as renderViewer
+  Fo as renderViewer
 };

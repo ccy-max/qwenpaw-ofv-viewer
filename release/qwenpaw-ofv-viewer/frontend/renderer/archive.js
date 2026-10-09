@@ -7697,7 +7697,7 @@ async function jd(e, n) {
 async function Hd(e) {
   const n = Wd();
   try {
-    const t = await Promise.resolve().then(() => Eu), a = (t.default || t).decode(e);
+    const t = await Promise.resolve().then(() => ku), a = (t.default || t).decode(e);
     return a instanceof Uint8Array ? a : a instanceof ArrayBuffer ? new Uint8Array(a) : Uint8Array.from(a);
   } finally {
     n();
@@ -8045,8 +8045,9 @@ var lu = {
   "application/avro": "avro"
 };
 new Set(Object.keys(lu));
-function ku(e) {
-  return td({ ...e, plugins: [Zd()] });
+const cu = { download: !0 };
+function Su(e) {
+  return td({ ...e, toolbar: cu, plugins: [Zd()] });
 }
 var Xa = [0, 1, 3, 7, 15, 31, 63, 127, 255], Mn = function(e) {
   this.stream = e, this.bitOffset = 0, this.curByte = 0, this.hasByte = !1;
@@ -8078,7 +8079,7 @@ Mn.prototype.pi = function() {
     e[n] = this.read(8);
   return e.toString("hex");
 };
-var cu = Mn, Pt = function() {
+var fu = Mn, Pt = function() {
 };
 Pt.prototype.readByte = function() {
   throw new Error("abstract method readByte() not implemented");
@@ -8106,7 +8107,7 @@ Pt.prototype.write = function(e, n, t) {
 };
 Pt.prototype.flush = function() {
 };
-var fu = Pt, du = function() {
+var du = Pt, uu = function() {
   var e = new Uint32Array([
     0,
     79764919,
@@ -8377,11 +8378,11 @@ var fu = Pt, du = function() {
   };
   return n;
 }();
-const uu = "2.0.0", hu = "MIT", pu = {
-  version: uu,
-  license: hu
+const hu = "2.0.0", pu = "MIT", mu = {
+  version: hu,
+  license: pu
 };
-var mu = cu, Rn = fu, $o = du, Go = pu, nr = 20, Ka = 258, Va = 0, _u = 1, gu = 2, bu = 6, vu = 50, wu = "314159265359", xu = "177245385090", qa = function(e, n) {
+var _u = fu, Rn = du, $o = uu, Go = mu, nr = 20, Ka = 258, Va = 0, gu = 1, bu = 2, vu = 6, wu = 50, xu = "314159265359", yu = "177245385090", qa = function(e, n) {
   var t = e[n], r;
   for (r = n; r > 0; r--)
     e[r] = e[r - 1];
@@ -8420,13 +8421,13 @@ Be.prototype._start_bunzip = function(e, n) {
   var t = new Buffer(4);
   (e.read(t, 0, 4) !== 4 || String.fromCharCode(t[0], t[1], t[2]) !== "BZh") && Oe(xe.NOT_BZIP_DATA, "bad magic");
   var r = t[3] - 48;
-  (r < 1 || r > 9) && Oe(xe.NOT_BZIP_DATA, "level out of range"), this.reader = new mu(e), this.dbufSize = 1e5 * r, this.nextoutput = 0, this.outputStream = n, this.streamCRC = 0;
+  (r < 1 || r > 9) && Oe(xe.NOT_BZIP_DATA, "level out of range"), this.reader = new _u(e), this.dbufSize = 1e5 * r, this.nextoutput = 0, this.outputStream = n, this.streamCRC = 0;
 };
 Be.prototype._get_next_block = function() {
   var e, n, t, r = this.reader, a = r.pi();
-  if (a === xu)
+  if (a === yu)
     return !1;
-  a !== wu && Oe(xe.NOT_BZIP_DATA), this.targetBlockCRC = r.read(32) >>> 0, this.streamCRC = (this.targetBlockCRC ^ (this.streamCRC << 1 | this.streamCRC >>> 31)) >>> 0, r.read(1) && Oe(xe.OBSOLETE_INPUT);
+  a !== xu && Oe(xe.NOT_BZIP_DATA), this.targetBlockCRC = r.read(32) >>> 0, this.streamCRC = (this.targetBlockCRC ^ (this.streamCRC << 1 | this.streamCRC >>> 31)) >>> 0, r.read(1) && Oe(xe.OBSOLETE_INPUT);
   var i = r.read(24);
   i > this.dbufSize && Oe(xe.DATA_ERROR, "initial position out of bounds");
   var o = r.read(16), s = new Buffer(256), d = 0;
@@ -8437,7 +8438,7 @@ Be.prototype._get_next_block = function() {
         t & 1 << 15 - n && (s[d++] = c + n);
     }
   var h = r.read(3);
-  (h < gu || h > bu) && Oe(xe.DATA_ERROR);
+  (h < bu || h > vu) && Oe(xe.DATA_ERROR);
   var v = r.read(15);
   v === 0 && Oe(xe.DATA_ERROR);
   var _ = new Buffer(256);
@@ -8476,11 +8477,11 @@ Be.prototype._get_next_block = function() {
     _[e] = e;
   var R = 0, P = 0, O = 0, z, N = this.dbuf = new Uint32Array(this.dbufSize);
   for (g = 0; ; ) {
-    for (g-- || (g = vu - 1, O >= v && Oe(xe.DATA_ERROR), b = m[f[O++]]), e = b.minLen, n = r.read(e); e > b.maxLen && Oe(xe.DATA_ERROR), !(n <= b.limit[e]); e++)
+    for (g-- || (g = wu - 1, O >= v && Oe(xe.DATA_ERROR), b = m[f[O++]]), e = b.minLen, n = r.read(e); e > b.maxLen && Oe(xe.DATA_ERROR), !(n <= b.limit[e]); e++)
       n = n << 1 | r.read(1);
     n -= b.base[e], (n < 0 || n >= Ka) && Oe(xe.DATA_ERROR);
     var y = b.permute[n];
-    if (y === Va || y === _u) {
+    if (y === Va || y === gu) {
       R || (R = 1, o = 0), y === Va ? o += R : o += 2 * R, R <<= 1;
       continue;
     }
@@ -8597,10 +8598,10 @@ Be.Stream = Rn;
 Be.version = Go.version;
 Be.license = Go.license;
 var Xo = Be;
-const yu = /* @__PURE__ */ Ja(Xo), Eu = /* @__PURE__ */ ds({
+const Eu = /* @__PURE__ */ Ja(Xo), ku = /* @__PURE__ */ ds({
   __proto__: null,
-  default: yu
+  default: Eu
 }, [Xo]);
 export {
-  ku as renderViewer
+  Su as renderViewer
 };

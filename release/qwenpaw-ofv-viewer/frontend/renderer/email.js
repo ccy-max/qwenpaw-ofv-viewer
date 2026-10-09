@@ -5763,7 +5763,7 @@ function _s() {
       let p = [];
       try {
         if (a === "msg") {
-          const l = (await Promise.resolve().then(() => ju)).default, v = await fn(e.file), w = new l(v), _ = w.getFileData();
+          const l = (await Promise.resolve().then(() => qu)).default, v = await fn(e.file), w = new l(v), _ = w.getFileData();
           if (_.error)
             throw new Error(_.error);
           const S = _.senderName ? `${_.senderName} <${_.senderEmail || _.senderSmtpAddress || ""}>`.trim() : _.senderEmail || _.senderSmtpAddress || "", N = _.recipients || [], O = N.filter(($) => $.recipType === "to").map(($) => `${$.name || ""} <${$.email || $.smtpAddress || ""}>`.trim()).join("; "), M = N.filter(($) => $.recipType === "cc").map(($) => `${$.name || ""} <${$.email || $.smtpAddress || ""}>`.trim()).join("; "), L = [];
@@ -5792,7 +5792,7 @@ function _s() {
             attachments: L
           };
         } else {
-          const l = (await Promise.resolve().then(() => lc)).default, v = new l();
+          const l = (await Promise.resolve().then(() => fc)).default, v = new l();
           let w = await fn(e.file);
           if (a === "mbox") {
             let M = await ps(e.file);
@@ -6095,15 +6095,16 @@ var Ns = {
   "application/avro": "avro"
 };
 new Set(Object.keys(Ns));
-function fc(e) {
-  return Ro({ ...e, plugins: [_s()] });
+const Os = { search: !0, download: !0 };
+function dc(e) {
+  return Ro({ ...e, toolbar: Os, plugins: [_s()] });
 }
 var wr = {};
-wr.byteLength = Us;
-wr.toByteArray = Ps;
-wr.fromByteArray = qs;
-var ot = [], et = [], Os = typeof Uint8Array < "u" ? Uint8Array : Array, qr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-for (var Ct = 0, Rs = qr.length; Ct < Rs; ++Ct)
+wr.byteLength = Ms;
+wr.toByteArray = zs;
+wr.fromByteArray = Hs;
+var ot = [], et = [], Rs = typeof Uint8Array < "u" ? Uint8Array : Array, qr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+for (var Ct = 0, Us = qr.length; Ct < Us; ++Ct)
   ot[Ct] = qr[Ct], et[qr.charCodeAt(Ct)] = Ct;
 et[45] = 62;
 et[95] = 63;
@@ -6116,30 +6117,30 @@ function ia(e) {
   var i = r === t ? 0 : 4 - r % 4;
   return [r, i];
 }
-function Us(e) {
+function Ms(e) {
   var t = ia(e), r = t[0], i = t[1];
   return (r + i) * 3 / 4 - i;
 }
-function Ms(e, t, r) {
+function Ps(e, t, r) {
   return (t + r) * 3 / 4 - r;
 }
-function Ps(e) {
-  var t, r = ia(e), i = r[0], o = r[1], s = new Os(Ms(e, i, o)), n = 0, a = o > 0 ? i - 4 : i, u;
+function zs(e) {
+  var t, r = ia(e), i = r[0], o = r[1], s = new Rs(Ps(e, i, o)), n = 0, a = o > 0 ? i - 4 : i, u;
   for (u = 0; u < a; u += 4)
     t = et[e.charCodeAt(u)] << 18 | et[e.charCodeAt(u + 1)] << 12 | et[e.charCodeAt(u + 2)] << 6 | et[e.charCodeAt(u + 3)], s[n++] = t >> 16 & 255, s[n++] = t >> 8 & 255, s[n++] = t & 255;
   return o === 2 && (t = et[e.charCodeAt(u)] << 2 | et[e.charCodeAt(u + 1)] >> 4, s[n++] = t & 255), o === 1 && (t = et[e.charCodeAt(u)] << 10 | et[e.charCodeAt(u + 1)] << 4 | et[e.charCodeAt(u + 2)] >> 2, s[n++] = t >> 8 & 255, s[n++] = t & 255), s;
 }
-function zs(e) {
+function js(e) {
   return ot[e >> 18 & 63] + ot[e >> 12 & 63] + ot[e >> 6 & 63] + ot[e & 63];
 }
-function js(e, t, r) {
+function qs(e, t, r) {
   for (var i, o = [], s = t; s < r; s += 3)
-    i = (e[s] << 16 & 16711680) + (e[s + 1] << 8 & 65280) + (e[s + 2] & 255), o.push(zs(i));
+    i = (e[s] << 16 & 16711680) + (e[s + 1] << 8 & 65280) + (e[s + 2] & 255), o.push(js(i));
   return o.join("");
 }
-function qs(e) {
+function Hs(e) {
   for (var t, r = e.length, i = r % 3, o = [], s = 16383, n = 0, a = r - i; n < a; n += s)
-    o.push(js(e, n, n + s > a ? a : n + s));
+    o.push(qs(e, n, n + s > a ? a : n + s));
   return i === 1 ? (t = e[r - 1], o.push(
     ot[t >> 2] + ot[t << 4 & 63] + "=="
   )) : i === 2 && (t = (e[r - 2] << 8) + e[r - 1], o.push(
@@ -6148,18 +6149,18 @@ function qs(e) {
 }
 var hi = {}, ci = {}, tr = {}, Ue = {};
 Object.defineProperty(Ue, "__esModule", { value: !0 });
-Ue.arraysEqual = Hs;
-Ue.uInt2int = Gs;
-Ue.toHexStr = Ws;
+Ue.arraysEqual = Gs;
+Ue.uInt2int = Ws;
+Ue.toHexStr = $s;
 Ue.toHex1 = Oe;
-Ue.toHex2 = $s;
-Ue.toHex4 = Ys;
-Ue.msftUuidStringify = Vs;
-Ue.emptyToNull = Zs;
-Ue.readSystemTime = Ks;
-Ue.readTransitionSystemTime = Xs;
-Ue.bin2HexUpper = Qs;
-function Hs(e, t) {
+Ue.toHex2 = Ys;
+Ue.toHex4 = Vs;
+Ue.msftUuidStringify = Zs;
+Ue.emptyToNull = Ks;
+Ue.readSystemTime = Xs;
+Ue.readTransitionSystemTime = Qs;
+Ue.bin2HexUpper = Js;
+function Gs(e, t) {
   if (e === t)
     return !0;
   if (e == null || t == null || e.length != t.length)
@@ -6169,12 +6170,12 @@ function Hs(e, t) {
       return !1;
   return !0;
 }
-function Gs(e) {
+function Ws(e) {
   for (var t = new Array(e.length), r = 0; r < e.length; r++)
     t[r] = e[r] << 24 >> 24;
   return t;
 }
-function Ws(e, t) {
+function $s(e, t) {
   for (var r = ""; e != 0; )
     r = "0123456789abcdef"[e & 15] + r, e >>= 4, r = "0123456789abcdef"[e & 15] + r, e >>= 4;
   for (; r.length < t; )
@@ -6185,22 +6186,22 @@ var He = "0123456789abcdef";
 function Oe(e) {
   return He[e >> 4 & 15] + He[e & 15];
 }
-function $s(e) {
+function Ys(e) {
   return He[e >> 12 & 15] + He[e >> 8 & 15] + He[e >> 4 & 15] + He[e & 15];
 }
-function Ys(e) {
+function Vs(e) {
   return He[e >> 28 & 15] + He[e >> 24 & 15] + He[e >> 20 & 15] + He[e >> 16 & 15] + He[e >> 12 & 15] + He[e >> 8 & 15] + He[e >> 4 & 15] + He[e & 15];
 }
-function Vs(e, t) {
+function Zs(e, t) {
   return "" + Oe(e[t + 3]) + Oe(e[t + 2]) + Oe(e[t + 1]) + Oe(e[t + 0]) + "-" + Oe(e[t + 5]) + Oe(e[t + 4]) + "-" + Oe(e[t + 7]) + Oe(e[t + 6]) + "-" + Oe(e[t + 8]) + Oe(e[t + 9]) + "-" + Oe(e[t + 10]) + Oe(e[t + 11]) + Oe(e[t + 12]) + Oe(e[t + 13]) + Oe(e[t + 14]) + Oe(e[t + 15]);
 }
-function Zs(e) {
+function Ks(e) {
   return e === "" ? null : e;
 }
 function Tt(e, t) {
   return ("" + e).padStart(t, "0");
 }
-function Ks(e) {
+function Xs(e) {
   var t = e.readUint16(), r = e.readUint16();
   e.readUint16();
   var i = e.readUint16(), o = e.readUint16(), s = e.readUint16(), n = e.readUint16();
@@ -6208,7 +6209,7 @@ function Ks(e) {
   var a = "".concat(Tt(t, 4), "-").concat(Tt(r, 2), "-").concat(Tt(i, 2), "T").concat(Tt(o, 2), ":").concat(Tt(s, 2), ":").concat(Tt(n, 2), "Z");
   return a === "0000-00-00T00:00:00Z" ? null : new Date(a);
 }
-function Xs(e) {
+function Qs(e) {
   var t = e.readUint16(), r = e.readUint16(), i = e.readUint16(), o = e.readUint16(), s = e.readUint16(), n = e.readUint16();
   return e.readUint16(), e.readUint16(), {
     year: t,
@@ -6219,15 +6220,15 @@ function Xs(e) {
     minute: n
   };
 }
-function Qs(e) {
+function Js(e) {
   for (var t = ""; !e.isEof(); )
     t += Oe(e.readUint8());
   return t.toUpperCase();
 }
 Object.defineProperty(tr, "__esModule", { value: !0 });
-var Js = Ue;
+var eu = Ue;
 tr.default = {
-  FILE_HEADER: (0, Js.uInt2int)([208, 207, 17, 224, 161, 177, 26, 225]),
+  FILE_HEADER: (0, eu.uInt2int)([208, 207, 17, 224, 161, 177, 26, 225]),
   MSG: {
     UNUSED_BLOCK: -1,
     END_OF_CHAIN: -2,
@@ -7439,7 +7440,7 @@ yi.prototype.end = function() {
 var Hr = {}, Gr = {}, mr = { exports: {} };
 /*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
 var mn;
-function eu() {
+function tu() {
   return mn || (mn = 1, function(e, t) {
     var r = pi, i = r.Buffer;
     function o(n, a) {
@@ -7471,10 +7472,10 @@ function eu() {
   }(mr, mr.exports)), mr.exports;
 }
 var gn;
-function tu() {
+function ru() {
   if (gn) return Gr;
   gn = 1;
-  var e = eu().Buffer, t = e.isEncoding || function(l) {
+  var e = tu().Buffer, t = e.isEncoding || function(l) {
     switch (l = "" + l, l && l.toLowerCase()) {
       case "hex":
       case "utf8":
@@ -7629,7 +7630,7 @@ function tu() {
   return Gr;
 }
 var Wr, bn;
-function ru() {
+function iu() {
   if (bn) return Wr;
   bn = 1;
   var e = ht.Buffer;
@@ -7650,7 +7651,7 @@ function ru() {
     this.enc = u.encodingName, this.bomAware = u.bomAware, this.enc === "base64" ? this.encoder = s : this.enc === "cesu8" && (this.enc = "utf8", this.encoder = n, e.from("eda0bdedb2a9", "hex").toString() !== "💩" && (this.decoder = a, this.defaultCharUnicode = d.defaultCharUnicode));
   }
   t.prototype.encoder = o, t.prototype.decoder = i;
-  var r = tu().StringDecoder;
+  var r = ru().StringDecoder;
   r.prototype.end || (r.prototype.end = function() {
   });
   function i(u, d) {
@@ -7703,7 +7704,7 @@ function ru() {
   }, Wr;
 }
 var ut = {}, yn;
-function iu() {
+function nu() {
   if (yn) return ut;
   yn = 1;
   var e = ht.Buffer;
@@ -7822,7 +7823,7 @@ function iu() {
   return ut;
 }
 var gr = {}, vn;
-function nu() {
+function au() {
   if (vn) return gr;
   vn = 1;
   var e = ht.Buffer;
@@ -7908,7 +7909,7 @@ function nu() {
   return gr;
 }
 var Kt = {}, wn;
-function au() {
+function ou() {
   if (wn) return Kt;
   wn = 1;
   var e = ht.Buffer;
@@ -8004,7 +8005,7 @@ function au() {
   }, Kt;
 }
 var $r = {}, En;
-function ou() {
+function su() {
   if (En) return $r;
   En = 1;
   var e = ht.Buffer;
@@ -8045,7 +8046,7 @@ function ou() {
   }, $r;
 }
 var Yr, An;
-function su() {
+function uu() {
   return An || (An = 1, Yr = {
     // Not supported by iconv, not sure why.
     10029: "maccenteuro",
@@ -8194,7 +8195,7 @@ function su() {
   }), Yr;
 }
 var Vr, _n;
-function uu() {
+function cu() {
   return _n || (_n = 1, Vr = {
     437: "cp437",
     737: "cp737",
@@ -8650,7 +8651,7 @@ function uu() {
   }), Vr;
 }
 var Zr = {}, xn;
-function cu() {
+function lu() {
   if (xn) return Zr;
   xn = 1;
   var e = ht.Buffer;
@@ -8890,7 +8891,7 @@ function cu() {
   }
   return Zr;
 }
-const lu = [
+const fu = [
   [
     "0",
     "\0",
@@ -9435,7 +9436,7 @@ const lu = [
     "fc40",
     "髜魵魲鮏鮱鮻鰀鵰鵫鶴鸙黑"
   ]
-], fu = [
+], du = [
   [
     "0",
     "\0",
@@ -13133,7 +13134,7 @@ const lu = [
     "8135f437",
     ""
   ]
-], du = [
+], hu = [
   128,
   165,
   169,
@@ -13341,7 +13342,7 @@ const lu = [
   65375,
   65510,
   65536
-], hu = [
+], pu = [
   0,
   36,
   38,
@@ -13549,10 +13550,10 @@ const lu = [
   39265,
   39394,
   189e3
-], pu = {
-  uChars: du,
-  gbChars: hu
-}, mu = [
+], mu = {
+  uChars: hu,
+  gbChars: pu
+}, gu = [
   [
     "0",
     "\0",
@@ -16655,7 +16656,7 @@ const lu = [
     "f9a1",
     "龤灨灥糷虪蠾蠽蠿讞貜躩軉靋顳顴飌饡馫驤驦驧鬤鸕鸗齈戇欞爧虌躨钂钀钁驩驨鬮鸙爩虋讟钃鱹麷癵驫鱺鸝灩灪麤齾齉龘碁銹裏墻恒粧嫺╔╦╗╠╬╣╚╩╝╒╤╕╞╪╡╘╧╛╓╥╖╟╫╢╙╨╜║═╭╮╰╯▓"
   ]
-], gu = [
+], bu = [
   [
     "8740",
     "䏰䰲䘃䖦䕸𧉧䵷䖳𧲱䳢𧳅㮕䜶䝄䱇䱀𤊿𣘗𧍒𦺋𧃒䱗𪍑䝏䗚䲅𧱬䴇䪤䚡𦬣爥𥩔𡩣𣸆𣽡晍囻"
@@ -17160,7 +17161,7 @@ const lu = [
   ]
 ];
 var Xr, Cn;
-function bu() {
+function yu() {
   return Cn || (Cn = 1, Xr = {
     // == Japanese/ShiftJIS ====================================================
     // All japanese encodings are based on JIS X set of standards:
@@ -17195,7 +17196,7 @@ function bu() {
     shiftjis: {
       type: "_dbcs",
       table: function() {
-        return lu;
+        return fu;
       },
       encodeAdd: { "¥": 92, "‾": 126 },
       encodeSkipVals: [{ from: 60736, to: 63808 }]
@@ -17213,7 +17214,7 @@ function bu() {
     eucjp: {
       type: "_dbcs",
       table: function() {
-        return fu;
+        return du;
       },
       encodeAdd: { "¥": 92, "‾": 126 }
     },
@@ -17260,7 +17261,7 @@ function bu() {
         return Kr.concat(Dn);
       },
       gb18030: function() {
-        return pu;
+        return mu;
       },
       encodeSkipVals: [128],
       encodeAdd: { "€": 41699 }
@@ -17274,7 +17275,7 @@ function bu() {
     cp949: {
       type: "_dbcs",
       table: function() {
-        return mu;
+        return gu;
       }
     },
     cseuckr: "cp949",
@@ -17321,7 +17322,7 @@ function bu() {
     big5hkscs: {
       type: "_dbcs",
       table: function() {
-        return Sn.concat(gu);
+        return Sn.concat(bu);
       },
       encodeSkipVals: [
         // Although Encoding Standard says we should avoid encoding to HKSCS area (See Step 1 of
@@ -17403,10 +17404,9 @@ function bu() {
   }), Xr;
 }
 var Tn;
-function yu() {
+function vu() {
   return Tn || (Tn = 1, function(e) {
     for (var t = [
-      ru(),
       iu(),
       nu(),
       au(),
@@ -17414,7 +17414,8 @@ function yu() {
       su(),
       uu(),
       cu(),
-      bu()
+      lu(),
+      yu()
     ], r = 0; r < t.length; r++) {
       var i = t[r];
       for (var o in i)
@@ -17423,7 +17424,7 @@ function yu() {
   }(Hr)), Hr;
 }
 var Qr, Bn;
-function vu() {
+function wu() {
   if (Bn) return Qr;
   Bn = 1;
   var e = ht.Buffer;
@@ -17492,10 +17493,10 @@ function vu() {
     };
   }, Qr;
 }
-const wu = {}, Eu = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const Eu = {}, Au = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  default: wu
-}, Symbol.toStringTag, { value: "Module" })), Au = /* @__PURE__ */ Ta(Eu);
+  default: Eu
+}, Symbol.toStringTag, { value: "Module" })), _u = /* @__PURE__ */ Ta(Au);
 (function(e) {
   var t = ht.Buffer, r = gi, i = e.exports;
   i.encodings = null, i.defaultCharUnicode = "�", i.defaultCharSingleByte = "?", i.encode = function(n, a, u) {
@@ -17513,7 +17514,7 @@ const wu = {}, Eu = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineP
       return !1;
     }
   }, i.toEncoding = i.encode, i.fromEncoding = i.decode, i._codecDataCache = {}, i.getCodec = function(n) {
-    i.encodings || (i.encodings = yu());
+    i.encodings || (i.encodings = vu());
     for (var a = i._canonicalizeEncoding(n), u = {}; ; ) {
       var d = i._codecDataCache[a];
       if (d)
@@ -17544,7 +17545,7 @@ const wu = {}, Eu = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineP
     return u.bomAware && !(a && a.stripBOM === !1) && (d = new r.StripBOM(d, a)), d;
   }, i.enableStreamingAPI = function(n) {
     if (!i.supportsStreams) {
-      var a = vu()(n);
+      var a = wu()(n);
       i.IconvLiteEncoderStream = a.IconvLiteEncoderStream, i.IconvLiteDecoderStream = a.IconvLiteDecoderStream, i.encodeStream = function(d, g) {
         return new i.IconvLiteEncoderStream(i.getEncoder(d, g), g);
       }, i.decodeStream = function(d, g) {
@@ -17554,16 +17555,16 @@ const wu = {}, Eu = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineP
   };
   var o;
   try {
-    o = Au;
+    o = _u;
   } catch {
   }
   o && o.Transform ? i.enableStreamingAPI(o) : i.encodeStream = i.decodeStream = function() {
     throw new Error("iconv-lite Streaming API is not enabled. Use iconv.enableStreamingAPI(require('stream')); to enable it.");
   };
 })(na);
-var _u = na.exports;
+var xu = na.exports;
 Object.defineProperty(zt, "__esModule", { value: !0 });
-var kn = _u, xu = (
+var kn = xu, Du = (
   /** @class */
   function() {
     function e(t, r, i) {
@@ -18173,25 +18174,25 @@ var kn = _u, xu = (
     }, e.BIG_ENDIAN = !1, e.LITTLE_ENDIAN = !0, e.endianness = new Int8Array(new Int16Array([1]).buffer)[0] > 0, e;
   }()
 );
-zt.default = xu;
+zt.default = Du;
 Uint8Array.prototype.BYTES_PER_ELEMENT === void 0 && (Object.defineProperties(Uint8Array.prototype, { BYTES_PER_ELEMENT: { value: Uint8Array.BYTES_PER_ELEMENT } }), Object.defineProperties(Int8Array.prototype, { BYTES_PER_ELEMENT: { value: Int8Array.BYTES_PER_ELEMENT } }), Object.defineProperties(Uint8ClampedArray.prototype, { BYTES_PER_ELEMENT: { value: Uint8ClampedArray.BYTES_PER_ELEMENT } }), Object.defineProperties(Uint16Array.prototype, { BYTES_PER_ELEMENT: { value: Uint16Array.BYTES_PER_ELEMENT } }), Object.defineProperties(Int16Array.prototype, { BYTES_PER_ELEMENT: { value: Int16Array.BYTES_PER_ELEMENT } }), Object.defineProperties(Uint32Array.prototype, { BYTES_PER_ELEMENT: { value: Uint32Array.BYTES_PER_ELEMENT } }), Object.defineProperties(Int32Array.prototype, { BYTES_PER_ELEMENT: { value: Int32Array.BYTES_PER_ELEMENT } }), Object.defineProperties(Float64Array.prototype, { BYTES_PER_ELEMENT: { value: Float64Array.BYTES_PER_ELEMENT } }));
 var Et = {}, oa = Ge && Ge.__importDefault || function(e) {
   return e && e.__esModule ? e : { default: e };
 };
 Object.defineProperty(Et, "__esModule", { value: !0 });
 Et.Reader = Et.TypeEnum = void 0;
-var In = oa(zt), Du = Ue, ge = oa(tr), Ft;
+var In = oa(zt), Su = Ue, ge = oa(tr), Ft;
 (function(e) {
   e[e.DIRECTORY = 1] = "DIRECTORY", e[e.DOCUMENT = 2] = "DOCUMENT", e[e.ROOT = 5] = "ROOT";
 })(Ft || (Et.TypeEnum = Ft = {}));
-var Su = (
+var Cu = (
   /** @class */
   function() {
     function e(t) {
       this.ds = new In.default(t, 0, In.default.LITTLE_ENDIAN);
     }
     return e.prototype.isMSGFile = function() {
-      return this.ds.seek(0), (0, Du.arraysEqual)(ge.default.FILE_HEADER, this.ds.readInt8Array(ge.default.FILE_HEADER.length));
+      return this.ds.seek(0), (0, Su.arraysEqual)(ge.default.FILE_HEADER, this.ds.readInt8Array(ge.default.FILE_HEADER.length));
     }, e.prototype.headerData = function() {
       this.bigBlockSize = this.ds.readByte(30) == ge.default.MSG.L_BIG_BLOCK_MARK ? ge.default.MSG.L_BIG_BLOCK_SIZE : ge.default.MSG.S_BIG_BLOCK_SIZE, this.bigBlockLength = this.bigBlockSize / 4, this.xBlockLength = this.bigBlockLength - 1, this.batCount = this.ds.readInt(ge.default.MSG.HEADER.BAT_COUNT_OFFSET), this.propertyStart = this.ds.readInt(ge.default.MSG.HEADER.PROPERTY_START_OFFSET), this.sbatStart = this.ds.readInt(ge.default.MSG.HEADER.SBAT_START_OFFSET), this.sbatCount = this.ds.readInt(ge.default.MSG.HEADER.SBAT_COUNT_OFFSET), this.xbatStart = this.ds.readInt(ge.default.MSG.HEADER.XBAT_START_OFFSET), this.xbatCount = this.ds.readInt(ge.default.MSG.HEADER.XBAT_COUNT_OFFSET);
     }, e.prototype.convertName = function(t) {
@@ -18387,17 +18388,17 @@ var Su = (
     }, e;
   }()
 );
-Et.Reader = Su;
+Et.Reader = Cu;
 var vi = {}, sa = Ge && Ge.__importDefault || function(e) {
   return e && e.__esModule ? e : { default: e };
 };
 Object.defineProperty(vi, "__esModule", { value: !0 });
-vi.burn = ku;
-var bt = Et, Fn = sa(zt), Cu = sa(tr);
+vi.burn = Iu;
+var bt = Et, Fn = sa(zt), Tu = sa(tr);
 function Bt(e) {
   return e + 511 & -512;
 }
-function Tu(e) {
+function Bu(e) {
   return e + 63 & -64;
 }
 var Ln = (
@@ -18424,7 +18425,7 @@ var Ln = (
       return this.sectors.length;
     }, e;
   }()
-), Bu = (
+), ku = (
   /** @class */
   function() {
     function e(t) {
@@ -18449,7 +18450,7 @@ var Ln = (
         return ue.entry.type == bt.TypeEnum.DOCUMENT && ue.isMini === !0;
       }); n < a.length; n++) {
         var s = a[n];
-        s.firstSector = s.entry.length === 0 ? -2 : this.miniFat.allocate(Tu(s.entry.length) / 64);
+        s.firstSector = s.entry.length === 0 ? -2 : this.miniFat.allocate(Bu(s.entry.length) / 64);
       }
       var u = Bt(4 * this.miniFat.count()) / 512, d = u !== 0 ? this.fat.allocate(u) : -2, g = 64 * this.miniFat.count(), m = this.fat.allocate(Bt(g) / 512);
       this.liteEnts[0].firstSector = m;
@@ -18472,7 +18473,7 @@ var Ln = (
         }
       }
       {
-        l.seek(0), l.writeUint8Array(Cu.default.FILE_HEADER), l.seek(24), l.writeUint16(62), l.writeUint16(3), l.writeUint16(65534), l.writeUint16(9), l.writeUint16(6), l.seek(44), l.writeInt32(p), l.writeInt32(r), l.seek(56), l.writeInt32(4096), l.writeInt32(d), l.writeInt32(u), l.writeInt32(h), l.writeInt32(A);
+        l.seek(0), l.writeUint8Array(Tu.default.FILE_HEADER), l.seek(24), l.writeUint16(62), l.writeUint16(3), l.writeUint16(65534), l.writeUint16(9), l.writeUint16(6), l.seek(44), l.writeInt32(p), l.writeInt32(r), l.seek(56), l.writeInt32(4096), l.writeInt32(d), l.writeInt32(u), l.writeInt32(h), l.writeInt32(A);
         for (var _ = 0; _ < v.length; _++)
           l.writeInt32(v[_]);
         for (; _ < 109; _++)
@@ -18537,16 +18538,16 @@ var Ln = (
     }, e;
   }()
 );
-function ku(e) {
-  return new Uint8Array(new Bu(e).array);
+function Iu(e) {
+  return new Uint8Array(new ku(e).array);
 }
-var wi = {}, Iu = Ge && Ge.__importDefault || function(e) {
+var wi = {}, Fu = Ge && Ge.__importDefault || function(e) {
   return e && e.__esModule ? e : { default: e };
 };
 Object.defineProperty(wi, "__esModule", { value: !0 });
-wi.parse = Fu;
-var Nn = Iu(zt);
-function Fu(e) {
+wi.parse = Lu;
+var Nn = Fu(zt);
+function Lu(e) {
   for (var t = new Nn.default(e, 0, Nn.default.LITTLE_ENDIAN), r = []; !t.isEof(); ) {
     var i = t.readUint32(), o = t.readUint16(), s = t.readUint16();
     r.push({
@@ -18560,8 +18561,8 @@ function Fu(e) {
 }
 var Ei = {};
 Object.defineProperty(Ei, "__esModule", { value: !0 });
-Ei.parse = Lu;
-function Lu(e) {
+Ei.parse = Nu;
+function Nu(e) {
   for (var t = [], r = 0; !e.isEof(); ) {
     var i = e.readUint16();
     if (i === 258) {
@@ -18588,9 +18589,9 @@ function Lu(e) {
 }
 var Ai = {};
 Object.defineProperty(Ai, "__esModule", { value: !0 });
-Ai.parse = Ru;
-var Jr = Ue, Nu = 1, Ou = 2;
-function Ru(e) {
+Ai.parse = Uu;
+var Jr = Ue, Ou = 1, Ru = 2;
+function Uu(e) {
   var t = { rules: [] };
   if (!e.isEof()) {
     var r = e.readUint8();
@@ -18599,7 +18600,7 @@ function Ru(e) {
     if (e.readUint8(), r < 1)
       throw new Error("TZDEFINITION minor version not supported");
     var i = e.readUint16(), o = e.readUint16();
-    if (o & Nu && (e.readInt32(), e.readInt32(), e.readInt32(), e.readInt32()), o & Ou) {
+    if (o & Ou && (e.readInt32(), e.readInt32(), e.readInt32(), e.readInt32()), o & Ru) {
       var s = e.readUint16();
       t.keyName = e.readUCS2String(s);
     }
@@ -18625,9 +18626,9 @@ function Ru(e) {
 }
 var _i = {};
 Object.defineProperty(_i, "__esModule", { value: !0 });
-_i.parse = Uu;
+_i.parse = Mu;
 var On = Ue;
-function Uu(e) {
+function Mu(e) {
   if (!e.isEof()) {
     var t = e.readInt32(), r = e.readInt32(), i = e.readInt32(), o = e.readUint16(), s = (0, On.readTransitionSystemTime)(e), n = e.readUint16(), a = (0, On.readTransitionSystemTime)(e);
     return Object.assign({}, {
@@ -18645,7 +18646,7 @@ function Uu(e) {
 var We = {};
 Object.defineProperty(We, "__esModule", { value: !0 });
 We.OverrideFlags = We.EndType = We.CalendarType = We.PatternType = We.RecurFrequency = void 0;
-We.parse = Pu;
+We.parse = zu;
 var Rn;
 (function(e) {
   e[e.Daily = 8202] = "Daily", e[e.Weekly = 8203] = "Weekly", e[e.Monthly = 8204] = "Monthly", e[e.Yearly = 8205] = "Yearly";
@@ -18666,7 +18667,7 @@ var je;
 (function(e) {
   e[e.ARO_SUBJECT = 1] = "ARO_SUBJECT", e[e.ARO_MEETINGTYPE = 2] = "ARO_MEETINGTYPE", e[e.ARO_REMINDERDELTA = 4] = "ARO_REMINDERDELTA", e[e.ARO_REMINDER = 8] = "ARO_REMINDER", e[e.ARO_LOCATION = 16] = "ARO_LOCATION", e[e.ARO_BUSYSTATUS = 32] = "ARO_BUSYSTATUS", e[e.ARO_ATTACHMENT = 64] = "ARO_ATTACHMENT", e[e.ARO_SUBTYPE = 128] = "ARO_SUBTYPE", e[e.ARO_APPTCOLOR = 256] = "ARO_APPTCOLOR", e[e.ARO_EXCEPTIONAL_BODY = 512] = "ARO_EXCEPTIONAL_BODY";
 })(je || (We.OverrideFlags = je = {}));
-function Mu(e) {
+function Pu(e) {
   var t = e.readUint16();
   if (t !== 12292)
     throw new Error("ReaderVersion not supported");
@@ -18699,8 +18700,8 @@ function Mu(e) {
     endDate: _
   }, d ? { patternTypeWeek: d } : {}, g ? { patternTypeMonth: g } : {}, m ? { patternTypeMonthNth: m } : {});
 }
-function Pu(e, t) {
-  var r = Mu(e), i = e.readUint32();
+function zu(e, t) {
+  var r = Pu(e), i = e.readUint32();
   if (i !== 12294)
     throw new Error("ReaderVersion2 not supported");
   var o = e.readUint32();
@@ -19069,9 +19070,9 @@ function Pu(e, t) {
   var o = i(ci);
   r(ci, e), e.default = o.default;
 })(hi);
-const zu = /* @__PURE__ */ Ca(hi), ju = /* @__PURE__ */ Sa({
+const ju = /* @__PURE__ */ Ca(hi), qu = /* @__PURE__ */ Sa({
   __proto__: null,
-  default: zu
+  default: ju
 }, [hi]), Mt = new TextEncoder(), Pn = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", Jt = new Uint8Array(256);
 for (let e = 0; e < Pn.length; e++)
   Jt[Pn.charCodeAt(e)] = e;
@@ -19087,12 +19088,12 @@ function li(e) {
   }
   return o;
 }
-const qu = /* @__PURE__ */ new Map([
+const Hu = /* @__PURE__ */ new Map([
   ["iso-8859-8-i", "iso-8859-8"],
   ["iso-8859-8-e", "iso-8859-8"]
 ]);
 function er(e) {
-  e = (e || "utf8").trim().toLowerCase(), e = qu.get(e) || e;
+  e = (e || "utf8").trim().toLowerCase(), e = Hu.get(e) || e;
   let t;
   try {
     t = new TextDecoder(e);
@@ -19116,7 +19117,7 @@ async function Er(e) {
 function zn(e) {
   return e >= 48 && e <= 57 || e >= 97 && e <= 102 || e >= 65 && e <= 70 ? String.fromCharCode(e) : !1;
 }
-function Hu(e, t, r) {
+function Gu(e, t, r) {
   let i = e.indexOf("*");
   i >= 0 && (e = e.substr(0, i)), t = t.toUpperCase();
   let o;
@@ -19153,7 +19154,7 @@ function Rt(e) {
       (i, o, s, n) => t && s === n ? o + "__\0JOIN\0__" : i
     ).replace(/(\?=)?__\x00JOIN\x00__(=\?([^?]+)\?[QqBb]\?)?/g, "").replace(/(=\?[^?]+\?[QqBb]\?[^?]*\?=)\s+(?==\?[^?]+\?[QqBb]\?[^?]*\?=)/g, "$1").replace(
       /=\?([\w_\-*]+)\?([QqBb])\?([^?]*)\?=/g,
-      (i, o, s, n) => Hu(o, s, n)
+      (i, o, s, n) => Gu(o, s, n)
     );
     if (t && r.indexOf("�") >= 0)
       t = !1;
@@ -19161,7 +19162,7 @@ function Rt(e) {
       return r;
   }
 }
-function Gu(e, t) {
+function Wu(e, t) {
   t = t || "utf-8";
   let r = [];
   for (let s = 0; s < e.length; s++) {
@@ -19181,7 +19182,7 @@ function Gu(e, t) {
     o.setUint8(s, r[s]);
   return er(t).decode(i);
 }
-function Wu(e) {
+function $u(e) {
   let t = /* @__PURE__ */ new Map();
   Object.keys(e.params).forEach((r) => {
     let i = r.match(/\*((\d+)\*?)?$/);
@@ -19195,13 +19196,13 @@ function Wu(e) {
     let a = e.params[r];
     s === 0 && i[0].charAt(i[0].length - 1) === "*" && (i = a.match(/^([^']*)'[^']*'(.*)$/)) && (n.charset = i[1] || "utf-8", a = i[2]), n.values.push({ nr: s, value: a }), delete e.params[r];
   }), t.forEach((r, i) => {
-    e.params[i] = Gu(
+    e.params[i] = Wu(
       r.values.sort((o, s) => o.nr - s.nr).map((o) => o.value).join(""),
       r.charset
     );
   });
 }
-class $u {
+class Yu {
   constructor() {
     this.chunks = [];
   }
@@ -19213,7 +19214,7 @@ class $u {
     return Er(new Blob(this.chunks, { type: "application/octet-stream" }));
   }
 }
-class Yu {
+class Vu {
   constructor(t) {
     t = t || {}, this.decoder = t.decoder || new TextDecoder(), this.maxChunkSize = 100 * 1024, this.chunks = [], this.remainder = "";
   }
@@ -19228,8 +19229,8 @@ class Yu {
     return this.remainder && !/^=+$/.test(this.remainder) && this.chunks.push(li(this.remainder)), Er(new Blob(this.chunks, { type: "application/octet-stream" }));
   }
 }
-const jn = /^=[a-f0-9]{2}$/i, Vu = /(?==[a-f0-9]{2})/i, Zu = /=\r?\n/g, Ku = /=[a-fA-F0-9]?$/;
-class Xu {
+const jn = /^=[a-f0-9]{2}$/i, Zu = /(?==[a-f0-9]{2})/i, Ku = /=\r?\n/g, Xu = /=[a-fA-F0-9]?$/;
+class Qu {
   constructor(t) {
     t = t || {}, this.decoder = t.decoder || new TextDecoder(), this.maxChunkSize = 100 * 1024, this.remainder = "", this.chunks = [];
   }
@@ -19240,8 +19241,8 @@ class Xu {
     return r;
   }
   decodeChunks(t) {
-    t = t.replace(Zu, "");
-    let r = t.split(Vu), i = [];
+    t = t.replace(Ku, "");
+    let r = t.split(Zu), i = [];
     for (let o of r) {
       if (o.charAt(0) !== "=") {
         i.length && (this.chunks.push(this.decodeQPBytes(i)), i = []), this.chunks.push(o);
@@ -19266,7 +19267,7 @@ class Xu {
       return;
     }
     this.remainder = "";
-    let i = r.match(Ku);
+    let i = r.match(Xu);
     if (i) {
       if (i.index === 0) {
         this.remainder = r;
@@ -19280,7 +19281,7 @@ class Xu {
     return this.remainder.length && (this.decodeChunks(this.remainder), this.remainder = ""), Er(new Blob(this.chunks, { type: "application/octet-stream" }));
   }
 }
-const Qu = er();
+const Ju = er();
 class qn {
   constructor(t) {
     if (this.options = t || {}, this.postalMime = this.options.postalMime, this.root = !!this.options.parentNode, this.childNodes = [], this.options.parentNode) {
@@ -19301,7 +19302,7 @@ class qn {
     }, this.headers = [], this.contentDecoder = !1;
   }
   setupContentDecoder(t) {
-    /base64/i.test(t) ? this.contentDecoder = new Yu() : /quoted-printable/i.test(t) ? this.contentDecoder = new Xu({ decoder: er(this.contentType.parsed.params.charset) }) : this.contentDecoder = new $u();
+    /base64/i.test(t) ? this.contentDecoder = new Vu() : /quoted-printable/i.test(t) ? this.contentDecoder = new Qu({ decoder: er(this.contentType.parsed.params.charset) }) : this.contentDecoder = new Yu();
   }
   async finalize() {
     if (this.state === "finished")
@@ -19375,7 +19376,7 @@ class qn {
           a = !1;
           break;
       }
-    return o = o.trim(), s === "value" ? i === !1 ? r.value = o : r.params[i] = o : o && (r.params[o.toLowerCase()] = ""), r.value && (r.value = r.value.toLowerCase()), Wu(r), r;
+    return o = o.trim(), s === "value" ? i === !1 ? r.value = o : r.params[i] = o : o && (r.params[o.toLowerCase()] = ""), r.value && (r.value = r.value.toLowerCase()), $u(r), r;
   }
   decodeFlowedText(t, r) {
     return t.split(/\r?\n/).reduce((i, o) => i.endsWith(" ") && i !== "-- " && !i.endsWith(`
@@ -19434,7 +19435,7 @@ class qn {
           return this.state = "body", this.processHeaders();
         if (this.headerSize += t.length, this.headerSize > this.options.maxHeadersSize)
           throw new Error(`Maximum header size of ${this.options.maxHeadersSize} bytes exceeded`);
-        this.headerLines.push(Qu.decode(t));
+        this.headerLines.push(Ju.decode(t));
         break;
       case "body":
         this.contentDecoder.update(t);
@@ -21675,7 +21676,7 @@ const Hn = {
   "&zwj;": "‍",
   "&zwnj;": "‌"
 };
-function Ju(e) {
+function ec(e) {
   return e.replace(/&(#\d+|#x[a-f0-9]+|[a-z]+\d*);?/gi, (t, r) => {
     if (typeof Hn[t] == "string")
       return Hn[t];
@@ -21693,10 +21694,10 @@ function wt(e) {
     return r.length < 2 && (r = "0" + r), "&#x" + r.toUpperCase() + ";";
   });
 }
-function ec(e) {
+function tc(e) {
   return "<div>" + wt(e).replace(/\n/g, "<br />") + "</div>";
 }
-function tc(e) {
+function rc(e) {
   return e = e.replace(/\r?\n/g, "").replace(/<\!\-\-.*?\-\->/gi, " ").replace(/<br\b[^>]*>/gi, `
 `).replace(/<\/?(p|div|table|tr|td|th)\b[^>]*>/gi, `
 
@@ -21707,7 +21708,7 @@ function tc(e) {
 
 `).replace(/^\n+/, `
 `).replace(/\n+$/, `
-`), e = Ju(e), e;
+`), e = ec(e), e;
 }
 function ua(e) {
   return [].concat(e.name || []).concat(e.name ? `<${e.address}>` : e.address).join(" ");
@@ -21735,7 +21736,7 @@ function ti(e) {
   };
   return e.forEach(r), t.join(" ");
 }
-function rc(e, t, r) {
+function ic(e, t, r) {
   e = (e || "").toString(), t = t || 76;
   let i = 0, o = e.length, s = "", n, a;
   for (; i < o; ) {
@@ -21770,7 +21771,7 @@ function Gn(e) {
   let r = t.map((n) => n.key.length).reduce((n, a) => a > n ? a : n, 0);
   t = t.flatMap((n) => {
     let a = r - n.key.length, u = `${n.key}: ${" ".repeat(a)}`, d = `${" ".repeat(n.key.length + 1)} ${" ".repeat(a)}`;
-    return rc(n.val, 80).split(/\r?\n/).map((m) => m.trim()).map((m, y) => `${y ? d : u}${m}`);
+    return ic(n.val, 80).split(/\r?\n/).map((m) => m.trim()).map((m, y) => `${y ? d : u}${m}`);
   });
   let i = t.map((n) => n.length).reduce((n, a) => a > n ? a : n, 0), o = "-".repeat(i);
   return `
@@ -21815,7 +21816,7 @@ function Wn(e) {
 <div class="postal-email-header-row">`
   )}${t.length ? "</div>" : ""}</div>`;
 }
-function ic(e, t) {
+function nc(e, t) {
   let r = !1, i = "text", o, s = [], n = {
     address: [],
     comment: [],
@@ -21885,7 +21886,7 @@ function ic(e, t) {
   }
   return s;
 }
-class nc {
+class ac {
   constructor(t) {
     this.str = (t || "").toString(), this.operatorCurrent = "", this.operatorExpecting = "", this.node = null, this.escaped = !1, this.list = [], this.operators = {
       '"': '"',
@@ -21949,17 +21950,17 @@ class nc {
 ` && (t = " "), (t.charCodeAt(0) >= 33 || [" ", "	"].includes(t)) && (this.node.value += t), this.escaped = !1;
   }
 }
-const ac = 50;
+const oc = 50;
 function Ut(e, t) {
   t = t || {};
   let r = t._depth || 0;
-  if (r > ac)
+  if (r > oc)
     return [];
-  let o = new nc(e).tokenize(), s = [], n = [], a = [];
+  let o = new ac(e).tokenize(), s = [], n = [], a = [];
   if (o.forEach((u) => {
     u.type === "operator" && (u.value === "," || u.value === ";") ? (n.length && s.push(n), n = []) : n.push(u);
   }), n.length && s.push(n), s.forEach((u) => {
-    u = ic(u, r), u.length && (a = a.concat(u));
+    u = nc(u, r), u.length && (a = a.concat(u));
   }), t.flatten) {
     let u = [], d = (g) => {
       g.forEach((m) => {
@@ -21972,12 +21973,12 @@ function Ut(e, t) {
   }
   return a;
 }
-function oc(e) {
+function sc(e) {
   for (var t = "", r = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", i = new Uint8Array(e), o = i.byteLength, s = o % 3, n = o - s, a, u, d, g, m, y = 0; y < n; y = y + 3)
     m = i[y] << 16 | i[y + 1] << 8 | i[y + 2], a = (m & 16515072) >> 18, u = (m & 258048) >> 12, d = (m & 4032) >> 6, g = m & 63, t += r[a] + r[u] + r[d] + r[g];
   return s == 1 ? (m = i[n], a = (m & 252) >> 2, u = (m & 3) << 4, t += r[a] + r[u] + "==") : s == 2 && (m = i[n] << 8 | i[n + 1], a = (m & 64512) >> 10, u = (m & 1008) >> 4, d = (m & 15) << 2, t += r[a] + r[u] + r[d] + "="), t;
 }
-const sc = 256, uc = 2 * 1024 * 1024, cc = 10;
+const uc = 256, cc = 2 * 1024 * 1024, lc = 10;
 function ri(e) {
   return e.replace(/-(.)/g, (t, r) => r.toUpperCase());
 }
@@ -21999,11 +22000,11 @@ class yr {
   // caller supplied options object can not seed it and switch the recursion limit off.
   constructor(t, r = 0) {
     this.options = t || {}, this.mimeOptions = {
-      maxNestingDepth: ii(this.options.maxNestingDepth, sc, "maxNestingDepth"),
-      maxHeadersSize: ii(this.options.maxHeadersSize, uc, "maxHeadersSize")
+      maxNestingDepth: ii(this.options.maxNestingDepth, uc, "maxNestingDepth"),
+      maxHeadersSize: ii(this.options.maxHeadersSize, cc, "maxHeadersSize")
     }, this.maxRfc822NestingDepth = ii(
       this.options.maxRfc822NestingDepth,
-      cc,
+      lc,
       "maxRfc822NestingDepth"
     ), this.rfc822NestingDepth = r, this.root = this.currentNode = new qn({
       postalMime: this,
@@ -22153,10 +22154,10 @@ class yr {
               case "text":
                 switch (a) {
                   case "html":
-                    t[a].push(ec(d.value));
+                    t[a].push(tc(d.value));
                     break;
                   case "plain":
-                    t[a].push(tc(d.value));
+                    t[a].push(rc(d.value));
                     break;
                 }
                 break;
@@ -22277,7 +22278,7 @@ class yr {
         break;
       case "base64":
         for (let a of r.attachments || [])
-          a != null && a.content && (a.content = oc(a.content), a.encoding = "base64");
+          a != null && a.content && (a.content = sc(a.content), a.encoding = "base64");
         break;
       case "utf8":
         let n = new TextDecoder("utf8");
@@ -22290,12 +22291,12 @@ class yr {
     return r;
   }
 }
-const lc = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const fc = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   addressParser: Ut,
   decodeWords: Rt,
   default: yr
 }, Symbol.toStringTag, { value: "Module" }));
 export {
-  fc as renderViewer
+  dc as renderViewer
 };
