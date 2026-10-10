@@ -3,7 +3,7 @@
   "name": "OFV 万能文件预览",
   "version": "0.6.5",
   "type": "frontend",
-  "description": "用 Open File Viewer (OFV) 接管对话文件卡片预览：Office/PDF/压缩包/邮件/文本源码。v0.5.0: 按格式定制工具栏（office/表格/演示/PDF 开缩放+搜索+打印+下载；文本/邮件开搜索+下载）+ 抽屉标题栏「全屏」按钮 + 分页格式「☰ 目录」页码导航（上一页/下一页/跳转），纯前端零后端。",
+  "description": "用 Open File Viewer (OFV) 接管对话文件卡片预览：Office/PDF/压缩包/邮件/文本源码。v0.6.x: 9 渲染器按需分块、抽屉标题两行式（文件名+格式·大小）、标题栏 换行/复制/下载/全屏、工具栏按格式定制（缩放/搜索/打印/下载）、下载按钮接管防空文件，纯前端零后端。",
   "author": "Zero (QwenPaw assistant)",
   "entry": {
     "frontend": "frontend/index.js"
