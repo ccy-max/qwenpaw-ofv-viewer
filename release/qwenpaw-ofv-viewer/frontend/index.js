@@ -1,5 +1,5 @@
 (() => {
-  const X = "0.7.0", W = "[ofv-viewer]", G = "qwenpaw-ofv-viewer", V = "OFV_NATIVE_EXTS", et = [
+  const X = "0.7.1", W = "[ofv-viewer]", G = "qwenpaw-ofv-viewer", V = "OFV_NATIVE_EXTS", et = [
     // 图片：宿主原生预览已支持
     "png",
     "jpg",
