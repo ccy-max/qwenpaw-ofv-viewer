@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.7";
+  const VERSION = "0.7.8";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -293,40 +293,86 @@
     throw new Error("拉取失败（已试 " + tried.size + " 个候选）最后: " + lastErr);
   }
 
+  /** 从 blob 复制纯文本到剪贴板（navigator.clipboard 不可用时退化 execCommand） */
+  async function copyTextFromBlob(blob) {
+    try {
+      const text = await blob.text();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        ta.remove();
+      }
+      log("已复制", (text || "").length, "字符");
+      return true;
+    } catch (e) { err("复制失败:", e); return false; }
+  }
+
+  /** 造一个与「在聊天中引用」同款外观的标题栏文字按钮 */
+  function makeHeaderTextBtn(label, title, handler) {
+    const b = document.createElement("button");
+    b.textContent = label; b.title = title;
+    b.style.cssText =
+      "border:1px solid #e2e8f0;background:#fff;color:#334155;height:28px;" +
+      "padding:0 10px;border-radius:6px;cursor:pointer;font-size:12.5px;" +
+      "margin-right:8px;line-height:1;";
+    b.onmouseenter = () => { b.style.background = "#f1f5f9"; };
+    b.onmouseleave = () => { b.style.background = "#fff"; };
+    b.onclick = handler;
+    return b;
+  }
+
   /**
-   * 把 OFV 文本面板的按钮（换行/复制/下载，类名 .ofv-code-action）
-   * 搬到抽屉标题栏，插到「在聊天中引用」按钮右侧。
-   * OFV 面板异步渲染 → 用 MutationObserver 等它出现；搬运后加标记防重复。
+   * 统一标题栏操作按钮（v0.7.8）：
+   *  - OFV 代码视图（txt/py/html/css…）渲染后会生成 .ofv-code-action（换行/复制/下载）
+   *    → 搬到标题栏「在聊天中引用」右侧（原行为）。
+   *  - 富文本/表格/office 等没有 .ofv-code-action（如 md 被 OFV 渲染成富文本）
+   *    → 等一小会儿确认搬不到后，自己注入统一按钮：文本类给 复制+下载，其余给 下载。
+   * 这样各格式的标题栏都有「复制/下载」，不再有的有有的没有。
    */
-  function hoistCodeActions(scope, headRight, anchorBtn) {
-    let moved = false;
-    const collect = () => {
-      if (moved) return true;
+  function ensureHeaderActions(scope, headRight, anchorBtn, ctx) {
+    let done = false;
+    const hoist = () => {
+      if (done) return true;
       const actions = scope.querySelectorAll(".ofv-code-action");
       if (!actions.length) return false;
-      // 按原顺序插入到 anchor（在聊天中引用）之后
       let ref = anchorBtn.nextSibling;
       actions.forEach((el) => {
         el.setAttribute("data-qp-ofv-hoisted", "1");
         el.style.cssText += "margin-left:8px;";
         headRight.insertBefore(el, ref);
       });
-      moved = true;
+      done = true;
       return true;
     };
-    if (collect()) return;
-    const obs = new MutationObserver(() => {
-      if (collect()) obs.disconnect();
-    });
+    const inject = () => {
+      if (done) return;
+      done = true;
+      const ref = anchorBtn.nextSibling; // 固定参照：按序 insertBefore 即得正确顺序
+      if (ctx.isText) {
+        headRight.insertBefore(
+          makeHeaderTextBtn("复制", "复制文本内容", () => copyTextFromBlob(ctx.blob)),
+          ref
+        );
+      }
+      const dlBtn = makeHeaderTextBtn("下载", "下载文件", () => downloadCurrent(ctx.blob, ctx.name));
+      dlBtn.__qpOfvDl = true; // bindDownload 会跳过：避免重复挂监听触发两次下载
+      headRight.insertBefore(dlBtn, ref);
+    };
+    if (hoist()) return;
+    const obs = new MutationObserver(() => { if (hoist()) obs.disconnect(); });
     obs.observe(scope, { childList: true, subtree: true });
-    // 兜底：OFV 渲染较慢时再轮询几次
     let tries = 0;
     const timer = setInterval(() => {
-      if (collect() || ++tries > 40) { clearInterval(timer); obs.disconnect(); }
+      if (hoist()) { clearInterval(timer); obs.disconnect(); }
+      else if (++tries > 10) { // ~2.5s 仍无 .ofv-code-action → OFV 走了富文本/非代码视图
+        clearInterval(timer); obs.disconnect(); inject();
+      }
     }, 250);
-    // 预览关闭时清理观察者
-    const cleanup = () => { obs.disconnect(); clearInterval(timer); };
-    backdropCleanups.push(cleanup);
+    backdropCleanups.push(() => { obs.disconnect(); clearInterval(timer); });
   }
 
   // ================================================================
@@ -731,8 +777,9 @@
       log("已打开 OFV 预览:", name, "(" + ext + ")", path);
 
       // OFV 文本面板的「换行 / 复制 / 下载」是渲染后异步生成的
-      // （.ofv-code-action），把它们搬到标题栏「在聊天中引用」右侧。
-      hoistCodeActions(ofvBox, headRight, citeBtn);
+      // （.ofv-code-action）搬到标题栏；富文本/表格类没有这些按钮则自注入 复制/下载。
+      const isText = family === "text" || family === "plain";
+      ensureHeaderActions(ofvBox, headRight, citeBtn, { blob, name, isText });
       // 接管所有下载按钮：用宿主 fetch 到的 blob 直接下载（OFV 自带下载会出空文件）
       bindDownload(drawer, blob, name);
     } catch (e) {
@@ -743,7 +790,56 @@
   }
 
   // ================================================================
+  // 派发源头拦截（v0.7.8）：包装 window.dispatchEvent
+  // 背景：宿主把 OPEN_PREVIEW 监听注册在 window 上，且注册时机早于插件加载。
+  // 对 window.dispatchEvent 直接派发的事件，window 就是 target —— 同节点监听
+  // 按注册顺序触发（capture 标志不改变 target 阶段顺序），所以我们在
+  // installCapture 里 stopImmediatePropagation 拦不住先执行的宿主监听 →
+  // 原生抽屉和 OFV 双开（工具行「预览」芯片 filePreviewLink 等 DOM 委托
+  // 覆盖不到的派发点全中招）。唯一可靠做法：在派发时刻吞掉事件，让宿主
+  // 监听根本收不到。detail.target 是宿主给的权威路径，比 DOM 提取更准。
+  // 天然覆盖全部三个派发点（气泡附件卡/预览芯片/网格卡）与未来新增派发点。
+  // ================================================================
+  let _lastOpen = { path: "", ts: 0 };
+  function openPreviewDedup(name, ext, p, url) {
+    const now = Date.now();
+    if (_lastOpen.path === p && now - _lastOpen.ts < 500) return; // 同一文件短窗口去重
+    _lastOpen = { path: p, ts: now };
+    openPreview(name, ext, p, url);
+  }
+
+  function installDispatchIntercept() {
+    if (window.__QP_OFV_DISPATCH__) return;
+    window.__QP_OFV_DISPATCH__ = true;
+    const orig = window.dispatchEvent.bind(window);
+    window.dispatchEvent = function (ev) {
+      try {
+        if (ev && ev.type === "qwenpaw:open-file-preview") {
+          const t = (ev.detail && ev.detail.target) || {};
+          const url = String(t.artifactUrl || "");
+          const path = String(t.path || "");
+          const name = getBaseName(path || url);
+          const ext = getExt(name || url || path);
+          if (OFV_EXTS.has(ext)) {
+            const p = normalizePath(path || url);
+            if (p) {
+              log("接管预览(dispatch):", name, "(" + ext + ") path=", p);
+              openPreviewDedup(name, ext, p, url);
+              return true; // 吞掉事件：宿主原生抽屉不再打开
+            }
+          }
+        }
+      } catch (e) {
+        err("dispatch 拦截失败，回退宿主:", e);
+      }
+      return orig(ev);
+    };
+    log("已安装派发源头拦截");
+  }
+
+  // ================================================================
   // 接管 qwenpaw:open-file-preview（window 捕获阶段，同 OnlyOffice 插件）
+  // —— v0.7.8 起作为 dispatch 拦截的兜底（如别处以非派发方式触发）
   // ================================================================
   function installCapture() {
     if (window.__QP_OFV_CAPTURE__) return;
@@ -766,7 +862,7 @@
 
           const p = normalizePath(path || url);
           if (!p) { err("无法归一化路径，放行"); return; }
-          openPreview(name, ext, p, url);
+          openPreviewDedup(name, ext, p, url);
         } catch (e2) {
           err("接管失败:", e2);
         }
@@ -871,7 +967,7 @@
       try { ev.stopImmediatePropagation(); } catch (e3) {}
     }
     log("接管预览(DOM):", name, "(" + ext + ") path=", p);
-    openPreview(name, ext, p, "");
+    openPreviewDedup(name, ext, p, "");
     return true;
   }
 
@@ -962,6 +1058,7 @@
   // ================================================================
   function boot() {
     ensureStyle();
+    installDispatchIntercept();
     installCapture();
     installDomDelegate();
     loadNativeExts();
