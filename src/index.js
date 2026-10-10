@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.6";
+  const VERSION = "0.7.7";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -30,8 +30,9 @@
   const DEFAULT_NATIVE_EXTS = [
     // 图片：宿主原生预览已支持
     "png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "bmp",
-    // 标记/网页/表格：宿主原生渲染更好
-    "md", "mdx", "html", "htm", "csv",
+    // 标记/网页/表格/样式：默认宿主原生渲染更好，但已纳入可接管全集，
+    // 从 OFV_NATIVE_EXTS 配置里去掉即可让 OFV 接管（v0.7.7）
+    "md", "mdx", "html", "htm", "css", "csv",
   ];
   // OFV 可接管全集
   // v0.4.0：pdf 从原生 <embed> 改为 OFV 接管（可缩放/目录/搜索，worker 自托管不走 CDN）
@@ -50,6 +51,9 @@
     // 前端框架/标记（v0.7.5：vue/html 等纯文本，OFV langMap 原生支持）
     "vue", "svelte", "astro", "scss", "less",
     "kt", "swift", "rb", "php", "cs", "dart", "lua", "bat", "ps1",
+    // v0.7.7：网页/样式/标记/表格纳入可接管全集（默认仍在放行清单走原生，
+    // 从 OFV_NATIVE_EXTS 去掉即由 OFV 接管）——修 OFV_NATIVE_EXTS 无法接管这些的不对称
+    "html", "htm", "css", "md", "csv",
   ];
   let NATIVE_EXTS = new Set(DEFAULT_NATIVE_EXTS);
   let OFV_EXTS = new Set(OFV_ALL_EXTS.filter((e) => !NATIVE_EXTS.has(e)));
@@ -74,7 +78,7 @@
     const m = {};
     const put = (renderer, exts) => exts.forEach((e) => (m[e] = renderer));
     put("office", ["docx", "docm", "dotx", "dotm", "rtf", "odt", "fodt"]);
-    put("sheet", ["xlsx", "xlsm", "xlsb", "xls", "ods", "fods"]);
+    put("sheet", ["xlsx", "xlsm", "xlsb", "xls", "ods", "fods", "csv"]);
     put("ppt", ["pptx", "pptm", "ppsx", "ppsm", "potx", "potm", "odp", "fodp"]);
     put("legacy", ["doc", "dot", "ppt", "pps"]); // 老二进制格式走 emf/转换路径
     put("pdf", ["pdf"]);
@@ -84,7 +88,9 @@
     put("text", ["json", "yaml", "yml", "toml", "xml", "py", "js", "ts", "tsx", "jsx",
       "java", "go", "rs", "c", "cpp", "h", "hpp", "sh", "bash", "sql", "rb", "php",
       "swift", "kt", "cs", "proto", "hcl", "tf", "dockerfile", "makefile",
-      "vue", "svelte", "astro", "scss", "less", "dart", "lua", "bat", "ps1", "r"]);
+      "vue", "svelte", "astro", "scss", "less", "dart", "lua", "bat", "ps1", "r",
+      // v0.7.7：网页/样式源码高亮（OFV langMap：html/htm→markup、css→css）
+      "html", "htm", "css"]);
     return m;
   })();
 

@@ -1,6 +1,6 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.7.6）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.7.7）｜插件 ID：`qwenpaw-ofv-viewer`
 
 在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览，**放行清单可用环境变量 `OFV_NATIVE_EXTS` 自定义**。
 
@@ -64,9 +64,9 @@
 | 邮件 | `eml` `msg` `mbox` |
 | 文本 / 源码 | `txt` `log` `json` `yaml` `yml` `toml` `ini` `conf` `py` `js` `ts` `tsx` `jsx` `java` `go` `rs` `c` `cpp` `h` `sh` `sql` `xml` `vue` `svelte` `astro` `scss` `less` `kt` `swift` `rb` `php` `cs` `dart` `lua` `bat` `ps1` |
 
-> **自动放行（原生预览）**：`png` `jpg` `jpeg` `gif` `webp` `svg` 等图片 / `md` `mdx` `html` `htm` / `csv`。这些由宿主原生预览处理，本插件不接管。
+> **默认放行（原生预览）**：`png` `jpg` `jpeg` `gif` `webp` `svg` `ico` `bmp` 等图片 / `md` `mdx` `html` `htm` `css` `csv`。这些默认由宿主原生预览处理。
 >
-> **可配置**：放行哪些格式可通过 QwenPaw 环境变量 `OFV_NATIVE_EXTS` 自定义，详见 [配置](#配置)。
+> **可配置**：放行哪些格式可通过 QwenPaw 环境变量 `OFV_NATIVE_EXTS` 自定义——从清单里去掉某格式即由 OFV 接管（v0.7.7 起 html/css/md/csv 已纳入可接管全集：html/css/md 源码高亮、csv 表格）。详见 [配置](#配置)。
 
 ---
 
@@ -85,7 +85,7 @@ v0.7.0 起，接管哪些格式可以配置。语义：**OFV 可接管全集 −
 
 - **分隔符**：逗号 / 空格 / 分号混用皆可
 - **容忍写法**：前导点（`.pdf`）、大小写（`PDF`）自动归一化
-- **未配置该变量** → 用默认放行清单：`png jpg jpeg gif webp svg ico bmp md mdx html htm csv`
+- **未配置该变量** → 用默认放行清单：`png jpg jpeg gif webp svg ico bmp md mdx html htm css csv`
 - **配置为空串** → 不放行任何格式，OFV 全接管
 - 改完**硬刷新控制台**（Ctrl+Shift+R）生效，无需重装插件
 
@@ -93,16 +93,18 @@ v0.7.0 起，接管哪些格式可以配置。语义：**OFV 可接管全集 −
 
 ```
 # 让 OFV 也接管 pdf（关掉原生 PDF 查看器）
-OFV_NATIVE_EXTS = png, jpg, jpeg, gif, webp, svg, ico, bmp, md, mdx, html, htm, csv
+OFV_NATIVE_EXTS = png, jpg, jpeg, gif, webp, svg, ico, bmp, md, mdx, html, htm, css, csv
 
 # 把 markdown 交给 OFV（带滚动条与打印）
-OFV_NATIVE_EXTS = png, jpg, jpeg, gif, webp, svg, ico, bmp, html, htm, csv
+OFV_NATIVE_EXTS = png, jpg, jpeg, gif, webp, svg, ico, bmp, html, htm, css, csv
 
-# 只留图片走原生，其余全 OFV 接管
+# 只留图片走原生，其余（含 html/css/md/csv）全 OFV 接管
 OFV_NATIVE_EXTS = png, jpg, jpeg, gif, webp, svg, ico, bmp
 ```
 
-> 注：`OFV_NATIVE_EXTS` 只能把格式**交回**原生，不能凭空让 OFV 接管它渲染不了的类型。
+> 注：`OFV_NATIVE_EXTS` 列出的是**交回原生**的格式；不列出的、且在 OFV 可接管全集里的格式由 OFV 接管。
+> v0.7.7 起 `html` `htm` `css` `md` `csv` 已纳入可接管全集（默认仍走原生，从配置里去掉即由 OFV 接管：
+> html/css/md 为源码高亮视图，csv 为表格视图）。接管 html 是**看源码**，不做网页活渲染。
 > F12 控制台看 `[ofv-viewer]` 日志可确认配置是否读到（`OFV_NATIVE_EXTS 已配置 → 交回原生: ...`）。
 
 ---
@@ -261,8 +263,8 @@ CI（`.github/workflows/release.yml`）会校验 tag 与源码 `VERSION` 一致�
 **Q：下载得到空文件？**
 v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），正常不会空。若仍异常，F12 看 `[ofv-viewer] 已触发下载: <名> <字节>` 那行的字节数。
 
-**Q：某些格式还是直接下载 / 没预览？**
-图片 / `md` `html` `csv` 是本插件**故意放行**的原生格式，正常行为。
+**Q：某些格式还是走原生 / 没被 OFV 接管？**
+默认放行清单（图片 + `md` `html` `css` `csv`）里的格式走宿主原生预览。想让 OFV 接管某个格式，把它从环境变量 `OFV_NATIVE_EXTS` 的值里去掉即可（v0.7.7 起 html/css/md/csv 已可被接管：html/css/md 源码高亮、csv 表格）。
 
 **Q：插件列表版本号没变？**
 宿主版本来自安装目录的 `plugin.json`。手动只替换 `frontend/` 产物不会更新版本号——用 `./install.sh`（会同步 plugin.json）或重装 release 目录。
@@ -273,6 +275,10 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 ---
 
 ## 版本更新摘要
+
+### v0.7.7 (2026-10-10)
+
+- **修复 `OFV_NATIVE_EXTS` 无法接管 html/css 的不对称**：`html` `htm` `css` `md` `csv` 此前不在"可接管全集"（`OFV_ALL_EXTS`）里，只写死在默认放行清单——导致无论环境变量怎么配，这几个格式永远走宿主原生（`css` 更是两个清单都没写）。现将它们纳入可接管全集，默认仍留在放行清单（不配置时行为不变）；从 `OFV_NATIVE_EXTS` 去掉即由 OFV 接管：html/htm/css/md 走源码高亮（Prism markup/css），csv 走表格渲染。注意接管 html 是看源码，不做网页活渲染
 
 ### v0.7.6 (2026-10-10)
 

@@ -1,5 +1,5 @@
 (() => {
-  const $ = "0.7.6", K = "[ofv-viewer]", Y = "qwenpaw-ofv-viewer", B = "OFV_NATIVE_EXTS", nt = [
+  const $ = "0.7.7", K = "[ofv-viewer]", Y = "qwenpaw-ofv-viewer", B = "OFV_NATIVE_EXTS", nt = [
     // 图片：宿主原生预览已支持
     "png",
     "jpg",
@@ -9,11 +9,13 @@
     "svg",
     "ico",
     "bmp",
-    // 标记/网页/表格：宿主原生渲染更好
+    // 标记/网页/表格/样式：默认宿主原生渲染更好，但已纳入可接管全集，
+    // 从 OFV_NATIVE_EXTS 配置里去掉即可让 OFV 接管（v0.7.7）
     "md",
     "mdx",
     "html",
     "htm",
+    "css",
     "csv"
   ], J = [
     // pdf（v0.4.0 接管）
@@ -78,7 +80,14 @@
     "dart",
     "lua",
     "bat",
-    "ps1"
+    "ps1",
+    // v0.7.7：网页/样式/标记/表格纳入可接管全集（默认仍在放行清单走原生，
+    // 从 OFV_NATIVE_EXTS 去掉即由 OFV 接管）——修 OFV_NATIVE_EXTS 无法接管这些的不对称
+    "html",
+    "htm",
+    "css",
+    "md",
+    "csv"
   ];
   let z = new Set(nt), S = new Set(J.filter((e) => !z.has(e)));
   function rt(e) {
@@ -89,7 +98,7 @@
   }
   const at = (() => {
     const e = {}, t = (o, r) => r.forEach((s) => e[s] = o);
-    return t("office", ["docx", "docm", "dotx", "dotm", "rtf", "odt", "fodt"]), t("sheet", ["xlsx", "xlsm", "xlsb", "xls", "ods", "fods"]), t("ppt", ["pptx", "pptm", "ppsx", "ppsm", "potx", "potm", "odp", "fodp"]), t("legacy", ["doc", "dot", "ppt", "pps"]), t("pdf", ["pdf"]), t("archive", ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"]), t("email", ["eml", "msg", "mbox"]), t("plain", ["txt", "log", "conf", "ini", "env", "properties", "md"]), t("text", [
+    return t("office", ["docx", "docm", "dotx", "dotm", "rtf", "odt", "fodt"]), t("sheet", ["xlsx", "xlsm", "xlsb", "xls", "ods", "fods", "csv"]), t("ppt", ["pptx", "pptm", "ppsx", "ppsm", "potx", "potm", "odp", "fodp"]), t("legacy", ["doc", "dot", "ppt", "pps"]), t("pdf", ["pdf"]), t("archive", ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2"]), t("email", ["eml", "msg", "mbox"]), t("plain", ["txt", "log", "conf", "ini", "env", "properties", "md"]), t("text", [
       "json",
       "yaml",
       "yml",
@@ -129,7 +138,11 @@
       "lua",
       "bat",
       "ps1",
-      "r"
+      "r",
+      // v0.7.7：网页/样式源码高亮（OFV langMap：html/htm→markup、css→css）
+      "html",
+      "htm",
+      "css"
     ]), e;
   })(), _ = (...e) => {
     try {
@@ -207,11 +220,11 @@
     for (const n of l) {
       const d = dt(s), v = d ? s.slice(d.length + 1) : "";
       d && v && f("project:" + d, v, n);
-      const y = "/workspaces/" + n + "/", g = s.indexOf(y);
-      g >= 0 && f("workspace", s.slice(g + y.length), n);
+      const y = "/workspaces/" + n + "/", m = s.indexOf(y);
+      m >= 0 && f("workspace", s.slice(m + y.length), n);
       const h = Math.min(c.length, 3);
-      for (let m = 1; m <= h; m++)
-        f("workspace", c.slice(-m).join("/"), n), f("project", c.slice(-m).join("/"), n);
+      for (let g = 1; g <= h; g++)
+        f("workspace", c.slice(-g).join("/"), n), f("project", c.slice(-g).join("/"), n);
     }
     let p = "";
     const u = /* @__PURE__ */ new Set();
@@ -220,9 +233,9 @@
       if (!u.has(d)) {
         u.add(d);
         try {
-          const v = n.direct ? n.direct : "/workspace/file-download?path=" + encodeURIComponent(n.path) + "&root=" + encodeURIComponent(n.root), y = n.agent ? { headers: { "X-Agent-Id": n.agent } } : void 0, g = await o.host.fetch(v, y);
-          if (g.ok) return await g.blob();
-          p = (n.direct ? "direct" : n.root + ":" + n.path + "@" + (n.agent || "cur")) + " -> HTTP " + g.status;
+          const v = n.direct ? n.direct : "/workspace/file-download?path=" + encodeURIComponent(n.path) + "&root=" + encodeURIComponent(n.root), y = n.agent ? { headers: { "X-Agent-Id": n.agent } } : void 0, m = await o.host.fetch(v, y);
+          if (m.ok) return await m.blob();
+          p = (n.direct ? "direct" : n.root + ":" + n.path + "@" + (n.agent || "cur")) + " -> HTTP " + m.status;
         } catch (v) {
           p = (n.direct ? "direct" : n.root + ":" + n.path + "@" + (n.agent || "cur")) + " -> " + (v && v.message ? v.message : v);
         }
@@ -230,9 +243,9 @@
     }
     if ((c[c.length - 1] || "") && !l.length) {
       const n = (() => {
-        var h, m, E;
+        var h, g, E;
         try {
-          return ((m = (h = window.QwenPaw) == null ? void 0 : h.context) == null ? void 0 : m.chatId) || ((E = window.QwenPaw) == null ? void 0 : E.chatId) || "";
+          return ((g = (h = window.QwenPaw) == null ? void 0 : h.context) == null ? void 0 : g.chatId) || ((E = window.QwenPaw) == null ? void 0 : E.chatId) || "";
         } catch {
           return "";
         }
@@ -241,20 +254,20 @@
         v.push(...await ft());
       } catch {
       }
-      const y = /* @__PURE__ */ new Set(), g = [];
-      for (let h = 0; h < c.length; h++) g.push(c.slice(h).join("/"));
+      const y = /* @__PURE__ */ new Set(), m = [];
+      for (let h = 0; h < c.length; h++) m.push(c.slice(h).join("/"));
       for (const h of v)
-        for (const m of ["project", "workspace"])
-          for (const E of g) {
-            const C = m + ":" + E + "@" + h;
+        for (const g of ["project", "workspace"])
+          for (const E of m) {
+            const C = g + ":" + E + "@" + h;
             if (!y.has(C)) {
               y.add(C);
               try {
-                const b = "/workspace/file-download?path=" + encodeURIComponent(E) + "&root=" + m, H = h ? { headers: { "X-Agent-Id": h, ...d } } : Object.keys(d).length ? { headers: d } : void 0, I = await o.host.fetch(b, H);
+                const b = "/workspace/file-download?path=" + encodeURIComponent(E) + "&root=" + g, H = h ? { headers: { "X-Agent-Id": h, ...d } } : Object.keys(d).length ? { headers: d } : void 0, I = await o.host.fetch(b, H);
                 if (I.ok) return await I.blob();
-                p = m + ":" + E + "@" + (h || "cur") + " -> HTTP " + I.status;
+                p = g + ":" + E + "@" + (h || "cur") + " -> HTTP " + I.status;
               } catch (b) {
-                p = m + ":" + E + "@" + (h || "cur") + " -> " + (b && b.message ? b.message : b);
+                p = g + ":" + E + "@" + (h || "cur") + " -> " + (b && b.message ? b.message : b);
               }
             }
           }
@@ -304,7 +317,7 @@
       w("下载失败:", o);
     }
   }
-  function gt(e, t, o) {
+  function mt(e, t, o) {
     const r = (l) => {
       l.__qpOfvDl || (l.__qpOfvDl = !0, l.addEventListener("click", (p) => {
         p.preventDefault(), p.stopPropagation();
@@ -356,7 +369,7 @@
   function et(e) {
     e.key === "Escape" && P();
   }
-  function mt(e) {
+  function gt(e) {
     const t = document.querySelector('[class*="sender"] textarea');
     if (!t)
       return w("未找到聊天输入框，引用失败"), !1;
@@ -469,7 +482,7 @@
     }, d.onmouseleave = () => {
       d.style.background = "#fff";
     }, d.onclick = () => {
-      mt(o) && P();
+      gt(o) && P();
     };
     const y = [
       "pdf",
@@ -493,12 +506,12 @@
       "xlsx",
       "xls",
       "ods"
-    ].includes(t), g = document.createElement("button");
-    g.textContent = "☰ 目录", g.title = "显示/隐藏页码导航", g.style.cssText = d.style.cssText, g.onmouseenter = () => {
-      g.style.background = "#f1f5f9";
-    }, g.onmouseleave = () => {
-      g.style.background = "#fff";
-    }, g.onclick = () => {
+    ].includes(t), m = document.createElement("button");
+    m.textContent = "☰ 目录", m.title = "显示/隐藏页码导航", m.style.cssText = d.style.cssText, m.onmouseenter = () => {
+      m.style.background = "#f1f5f9";
+    }, m.onmouseleave = () => {
+      m.style.background = "#fff";
+    }, m.onclick = () => {
       H(!E);
     };
     const h = document.createElement("button");
@@ -506,15 +519,15 @@
       document.fullscreenElement ? document.exitFullscreen() : a.requestFullscreen && a.requestFullscreen().catch(() => {
       });
     };
-    const m = document.createElement("div");
-    m.style.cssText = "display:flex;align-items:center;", m.appendChild(d), y && m.appendChild(g), m.appendChild(h), m.appendChild(n), c.appendChild(f), c.appendChild(m);
+    const g = document.createElement("div");
+    g.style.cssText = "display:flex;align-items:center;", g.appendChild(d), y && g.appendChild(m), g.appendChild(h), g.appendChild(n), c.appendChild(f), c.appendChild(g);
     let E = !1;
     const C = document.createElement("div");
     C.style.cssText = "flex:0 0 auto;width:0;overflow:hidden;transition:width .22s ease;border-right:0 solid #e2e8f0;background:#f8fafc;";
     const b = document.createElement("div");
     b.style.cssText = "width:200px;padding:12px;box-sizing:border-box;height:100%;overflow:auto;", b.innerHTML = '<div style="font-size:12px;color:#64748b;margin-bottom:8px">页面导航</div><div style="display:flex;gap:6px;margin-bottom:10px"><button data-toc="prev" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">上一页</button><button data-toc="next" style="flex:1;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">下一页</button></div><div style="display:flex;gap:6px;align-items:center"><input data-toc="page" type="number" min="1" style="width:64px;height:28px;border:1px solid #e2e8f0;border-radius:6px;padding:0 6px"><button data-toc="go" style="height:28px;padding:0 10px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">跳转</button></div><div data-toc="tip" style="margin-top:10px;font-size:11.5px;color:#94a3b8;line-height:1.5">提示：也可直接用工具栏的缩放与搜索</div>', C.appendChild(b);
     function H(i) {
-      E = i, C.style.width = i ? "200px" : "0", C.style.borderRightWidth = i ? "1px" : "0", g.style.background = i ? "#e2e8f0" : "#fff", setTimeout(() => {
+      E = i, C.style.width = i ? "200px" : "0", C.style.borderRightWidth = i ? "1px" : "0", m.style.background = i ? "#e2e8f0" : "#fff", setTimeout(() => {
         try {
           k && k.resize && k.resize();
         } catch {
@@ -574,7 +587,7 @@
         locale: "zh-CN",
         theme: "light",
         onError: (G, M) => w("OFV 渲染错误", M && M.name, G)
-      }), _("已打开 OFV 预览:", e, "(" + t + ")", o), ut(i, m, d), gt(a, O, e);
+      }), _("已打开 OFV 预览:", e, "(" + t + ")", o), ut(i, g, d), mt(a, O, e);
     } catch (i) {
       T.textContent = "OFV 渲染失败：" + (i && i.message ? i.message : i) + "（点击关闭）", T.onclick = P, w("OFV 渲染失败", i);
     }
