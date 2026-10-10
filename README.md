@@ -1,6 +1,6 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.7.4）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.7.5）｜插件 ID：`qwenpaw-ofv-viewer`
 
 在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览，**放行清单可用环境变量 `OFV_NATIVE_EXTS` 自定义**。
 
@@ -62,7 +62,7 @@
 | PDF | `pdf` |
 | 压缩包 | `zip` `rar` `7z` `tar` `gz` `tgz` `bz2` |
 | 邮件 | `eml` `msg` `mbox` |
-| 文本 / 源码 | `txt` `log` `json` `yaml` `yml` `toml` `ini` `conf` `py` `js` `ts` `tsx` `jsx` `java` `go` `rs` `c` `cpp` `h` `sh` `sql` `xml` |
+| 文本 / 源码 | `txt` `log` `json` `yaml` `yml` `toml` `ini` `conf` `py` `js` `ts` `tsx` `jsx` `java` `go` `rs` `c` `cpp` `h` `sh` `sql` `xml` `vue` `svelte` `astro` `scss` `less` `kt` `swift` `rb` `php` `cs` `dart` `lua` `bat` `ps1` |
 
 > **自动放行（原生预览）**：`png` `jpg` `jpeg` `gif` `webp` `svg` 等图片 / `md` `mdx` `html` `htm` / `csv`。这些由宿主原生预览处理，本插件不接管。
 >
@@ -273,6 +273,11 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 ---
 
 ## 版本更新摘要
+
+### v0.7.5 (2026-10-10)
+
+- **扩充代码接管格式**：新增 `vue` `svelte` `astro` `scss` `less` `kt` `swift` `rb` `php` `cs` `dart` `lua` `bat` `ps1` 等（OFV langMap 原生支持高亮的纯文本格式）；`.vue` 等前端单文件组件不再落到宿主"暂不支持预览"
+- E2E：vue 单文件组件经 text 渲染器高亮渲染通过
 
 ### v0.7.4 (2026-10-10)
 
