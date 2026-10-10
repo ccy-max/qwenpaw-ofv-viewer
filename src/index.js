@@ -13,14 +13,29 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.6.5";
+  const VERSION = "0.7.0";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
-  // 原生预览已支持的：png/jpg/jpeg/gif/webp/svg/ico/bmp/md/mdx/html/htm/csv —— 一律放行
+  // ── 接管格式（可配置）────────────────────────────────────────
+  // 语义：OFV 可接管的全集 − 交回原生预览的格式 = 实际接管集合。
+  // 交回原生的格式由 QwenPaw 环境变量 `OFV_NATIVE_EXTS` 配置（v0.7.0）：
+  //   设置界面 → 环境变量 → 新增 OFV_NATIVE_EXTS，值形如
+  //   "png,jpg,jpeg,gif,webp,svg,ico,bmp,md,mdx,html,htm,csv"
+  //   （逗号/空格/分号分隔，前导点可选，大小写不敏感）
+  //   · 未配置该变量 → 用下面的默认放行清单
+  //   · 配置为空串   → 不放行任何格式，OFV 全接管
+  // 改完刷新控制台生效（无需重装插件）。
+  const NATIVE_EXTS_ENV_KEY = "OFV_NATIVE_EXTS";
+  const DEFAULT_NATIVE_EXTS = [
+    // 图片：宿主原生预览已支持
+    "png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "bmp",
+    // 标记/网页/表格：宿主原生渲染更好
+    "md", "mdx", "html", "htm", "csv",
+  ];
+  // OFV 可接管全集
   // v0.4.0：pdf 从原生 <embed> 改为 OFV 接管（可缩放/目录/搜索，worker 自托管不走 CDN）
-  // OFV 其他插件：zip/rar/7z/tar/gz（archive）、eml/msg/mbox（email）、文本/源码（text）
-  const OFV_EXTS = new Set([
+  const OFV_ALL_EXTS = [
     // pdf（v0.4.0 接管）
     "pdf",
     // office（含老格式，原生都不支持）
@@ -32,7 +47,24 @@
     // 文本/代码（原生只支持代码块内预览，这里给带高亮的完整预览）
     "txt", "log", "json", "yaml", "yml", "toml", "ini", "conf",
     "py", "js", "ts", "tsx", "jsx", "java", "go", "rs", "c", "cpp", "h", "sh", "sql", "xml",
-  ]);
+  ];
+  let NATIVE_EXTS = new Set(DEFAULT_NATIVE_EXTS);
+  let OFV_EXTS = new Set(OFV_ALL_EXTS.filter((e) => !NATIVE_EXTS.has(e)));
+
+  /** 解析 env 值为扩展名数组（容忍前导点、大小写、逗号/空格/分号分隔） */
+  function parseExtList(raw) {
+    return String(raw == null ? "" : raw)
+      .split(/[,\s;]+/)
+      .map((s) => s.trim().replace(/^\.+/, "").toLowerCase())
+      .filter(Boolean);
+  }
+
+  /** 依据 NATIVE_EXTS 重算接管集合与派生正则缓存 */
+  function rebuildExtSets() {
+    OFV_EXTS = new Set(OFV_ALL_EXTS.filter((e) => !NATIVE_EXTS.has(e)));
+    _nameRe = null;
+    _pathRe = null;
+  }
 
   // 扩展名 → 渲染器 chunk 路由（v0.4.0 细拆：点 docx 不再被迫下载 xlsx/pptx 解析器）
   const EXT_RENDERER = (() => {
@@ -721,14 +753,23 @@
   // 这里只处理事件路径覆盖不到的气泡卡，并兼容网格卡作为双保险。
   // ================================================================
   // 文件名提取：白名单扩展名正则（避免把路径中 6 字母内的目录名误当扩展名）
-  const NAME_RE = new RegExp(
-    "([\\w@.\\-]+\\.(" + [...OFV_EXTS].join("|") + "))(?![\\w-])",
-    "i"
-  );
-  const PATH_RE = new RegExp(
-    "(\\/?[\\w@.\\-]+(?:\\/[\\w@.\\-]+)*\\.(" + [...OFV_EXTS].join("|") + "))(?![\\w-])",
-    "i"
-  );
+  // 扩展名集合可经 OFV_NATIVE_EXTS 配置变更 → 惰性重建缓存
+  let _nameRe = null;
+  let _pathRe = null;
+  function nameRe() {
+    if (!_nameRe) _nameRe = OFV_EXTS.size ? new RegExp(
+      "([\\w@.\\-]+\\.(" + [...OFV_EXTS].join("|") + "))(?![\\w-])",
+      "i"
+    ) : /$^/; // 全放行时永不匹配
+    return _nameRe;
+  }
+  function pathRe() {
+    if (!_pathRe) _pathRe = OFV_EXTS.size ? new RegExp(
+      "(\\/?[\\w@.\\-]+(?:\\/[\\w@.\\-]+)*\\.(" + [...OFV_EXTS].join("|") + "))(?![\\w-])",
+      "i"
+    ) : /$^/;
+    return _pathRe;
+  }
 
   function tryTakeOverFromCard(card, ev) {
     if (!card) return false;
@@ -746,7 +787,7 @@
       const d = decodeURIComponent(hay);
       if (d.indexOf("\uFFFD") === -1) decoded = d;
     } catch (e) {}
-    const m = NAME_RE.exec(decoded);
+    const m = nameRe().exec(decoded);
     if (!m) return false;
     const name = getBaseName(m[1]);
     const ext = getExt(name);
@@ -754,7 +795,7 @@
 
     // 提取路径：优先完整路径（title/aria-label 里的绝对或工作区路径），退化用 basename
     let rawPath = "";
-    const pathMatch = PATH_RE.exec(decoded);
+    const pathMatch = pathRe().exec(decoded);
     if (pathMatch) {
       rawPath = pathMatch[1];
       if (!rawPath.startsWith("/")) rawPath = "/" + rawPath;
@@ -824,12 +865,41 @@
   }
 
   // ================================================================
+  // 从 QwenPaw 环境变量读取 OFV_NATIVE_EXTS（交回原生预览的格式清单）
+  // 端点 GET /envs 返回 [{key,value}]（用户显式配置的变量）。
+  // ⚠️ host.fetch 自动补 /api 前缀 → 这里只写 "/envs"。
+  // 未配置该变量 → 保持默认清单；配置了（含空串）→ 覆盖。
+  // ================================================================
+  async function loadNativeExts() {
+    const QP = window.QwenPaw;
+    if (!QP || !QP.host || typeof QP.host.fetch !== "function") return;
+    try {
+      const resp = await QP.host.fetch("/envs");
+      if (!resp.ok) { err("读取环境变量失败:", resp.status); return; }
+      const list = await resp.json();
+      const hit = Array.isArray(list)
+        ? list.find((x) => x && String(x.key).toUpperCase() === NATIVE_EXTS_ENV_KEY)
+        : null;
+      if (hit) {
+        NATIVE_EXTS = new Set(parseExtList(hit.value));
+        log(NATIVE_EXTS_ENV_KEY + " 已配置 → 交回原生:", [...NATIVE_EXTS].join(",") || "(空，OFV 全接管)");
+      } else {
+        log(NATIVE_EXTS_ENV_KEY + " 未配置 → 用默认放行清单");
+      }
+      rebuildExtSets();
+    } catch (e) {
+      err("读取环境变量异常（用默认清单）:", e);
+    }
+  }
+
+  // ================================================================
   // 插件入口
   // ================================================================
   function boot() {
     ensureStyle();
     installCapture();
     installDomDelegate();
+    loadNativeExts();
   }
 
   if (window.QwenPaw && window.QwenPaw.host) {

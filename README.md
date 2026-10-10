@@ -1,8 +1,8 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.6.5）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.7.0）｜插件 ID：`qwenpaw-ofv-viewer`
 
-在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览。
+在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览，**放行清单可用环境变量 `OFV_NATIVE_EXTS` 自定义**。
 
 - **适用版本**：QwenPaw 2.0.0 ~ 2.3.0
 - **授权**：MIT（渲染内核 `@open-file-viewer/core` 亦为 MIT）
@@ -14,6 +14,7 @@
 
 - [功能特性](#功能特性)
 - [支持格式](#支持格式)
+- [配置](#配置)
 - [技术栈](#技术栈)
 - [架构与文件拉取链路](#架构与文件拉取链路)
 - [安装](#安装)
@@ -64,6 +65,45 @@
 | 文本 / 源码 | `txt` `log` `json` `yaml` `yml` `toml` `ini` `conf` `py` `js` `ts` `tsx` `jsx` `java` `go` `rs` `c` `cpp` `h` `sh` `sql` `xml` |
 
 > **自动放行（原生预览）**：`png` `jpg` `jpeg` `gif` `webp` `svg` 等图片 / `md` `mdx` `html` `htm` / `csv`。这些由宿主原生预览处理，本插件不接管。
+>
+> **可配置**：放行哪些格式可通过 QwenPaw 环境变量 `OFV_NATIVE_EXTS` 自定义，详见 [配置](#配置)。
+
+---
+
+## 配置
+
+### `OFV_NATIVE_EXTS` — 交回原生预览的格式清单
+
+v0.7.0 起，接管哪些格式可以配置。语义：**OFV 可接管全集 − 本变量列出的格式 = 实际接管集合**。
+
+在 QwenPaw **设置界面 → 环境变量** 新增（或启动前注入进程环境）：
+
+| 项 | 值 |
+|----|----|
+| 变量名 | `OFV_NATIVE_EXTS` |
+| 示例值 | `png, jpg, jpeg, gif, webp, svg, ico, bmp, md, mdx, html, htm, csv` |
+
+- **分隔符**：逗号 / 空格 / 分号混用皆可
+- **容忍写法**：前导点（`.pdf`）、大小写（`PDF`）自动归一化
+- **未配置该变量** → 用默认放行清单：`png jpg jpeg gif webp svg ico bmp md mdx html htm csv`
+- **配置为空串** → 不放行任何格式，OFV 全接管
+- 改完**硬刷新控制台**（Ctrl+Shift+R）生效，无需重装插件
+
+**常用例子：**
+
+```
+# 让 OFV 也接管 pdf（关掉原生 PDF 查看器）
+OFV_NATIVE_EXTS = png, jpg, jpeg, gif, webp, svg, ico, bmp, md, mdx, html, htm, csv
+
+# 把 markdown 交给 OFV（带滚动条与打印）
+OFV_NATIVE_EXTS = png, jpg, jpeg, gif, webp, svg, ico, bmp, html, htm, csv
+
+# 只留图片走原生，其余全 OFV 接管
+OFV_NATIVE_EXTS = png, jpg, jpeg, gif, webp, svg, ico, bmp
+```
+
+> 注：`OFV_NATIVE_EXTS` 只能把格式**交回**原生，不能凭空让 OFV 接管它渲染不了的类型。
+> F12 控制台看 `[ofv-viewer]` 日志可确认配置是否读到（`OFV_NATIVE_EXTS 已配置 → 交回原生: ...`）。
 
 ---
 
@@ -149,7 +189,7 @@ qwenpaw plugin install /path/to/qwenpaw-ofv-viewer/release/qwenpaw-ofv-viewer --
 qwenpaw plugin list
 ```
 
-应看到 `OFV 万能文件预览 (v0.6.5)`。然后在对话里**硬刷新控制台（Ctrl+Shift+R）**，点文件卡片即可看到右侧抽屉预览。
+应看到 `OFV 万能文件预览 (v0.7.0)`。然后在对话里**硬刷新控制台（Ctrl+Shift+R）**，点文件卡片即可看到右侧抽屉预览。
 
 ---
 
@@ -233,6 +273,11 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 ---
 
 ## 版本更新摘要
+
+### v0.7.0 (2026-10-10)
+
+- **`OFV_NATIVE_EXTS` 环境变量配置**：交回原生预览的格式清单可自定义（QwenPaw 设置界面 → 环境变量）。未配置用默认清单（图片/md/html/csv）；空串 = OFV 全接管；支持逗号/空格/分号分隔、前导点、大小写不敏感。运行时经 `GET /envs` 读取（复用 `host.fetch` 鉴权），接管集合与派生正则热重算，改完刷新控制台即生效
+- 实现：`OFV_EXTS` 从常量改为「全集 − 放行集」动态计算；`NAME_RE`/`PATH_RE` 改惰性构建缓存
 
 ### v0.6.x (2026-10-10)
 
