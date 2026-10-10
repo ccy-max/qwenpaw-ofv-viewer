@@ -11,3 +11,6 @@ dist/
 # 内部开发跟踪文档（不对外发布）
 OFV_PREVIEW_TODO.md
 OFV_*_TODO.md
+
+# 发布打包产物（CI/本地 package 生成，不提交）
+dist-release/

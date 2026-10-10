@@ -6,6 +6,8 @@
   "description": "QwenPaw frontend plugin: universal file preview powered by Open File Viewer",
   "scripts": {
     "build": "vite build",
+    "build:full": "node build-all.mjs && vite build",
+    "package": "sh package-release.sh",
     "dev": "vite build --watch"
   },
   "devDependencies": {
