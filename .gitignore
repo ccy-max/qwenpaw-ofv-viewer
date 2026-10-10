@@ -21,3 +21,6 @@ OFV_INTEGRATE_TODO.md
 
 # 渲染器大库中间产物（build-all.mjs 生成，可再生）
 dist-libs/
+
+# 本机环境覆盖（不入库）
+.env.local

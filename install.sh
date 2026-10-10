@@ -4,7 +4,8 @@
 set -e
 
 REPO=$(cd "$(dirname "$0")" && pwd)
-# QwenPaw 工作目录：默认 ~/.qwenpaw，可用 QWENPAW_HOME 覆盖
+# QwenPaw 工作目录：默认 ~/.qwenpaw，可用 QWENPAW_HOME 或本地 .env.local 覆盖
+[ -f "$REPO/.env.local" ] && . "$REPO/.env.local"
 QWENPAW_HOME="${QWENPAW_HOME:-$HOME/.qwenpaw}"
 PLUGINS_DIR="$QWENPAW_HOME/plugins"
 PLUGIN_ID="qwenpaw-ofv-viewer"
