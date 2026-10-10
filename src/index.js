@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.5";
+  const VERSION = "0.7.6";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -919,9 +919,21 @@
   // ================================================================
   async function loadNativeExts() {
     const QP = window.QwenPaw;
-    if (!QP || !QP.host || typeof QP.host.fetch !== "function") return;
+    if (!QP || !QP.host) return;
     try {
-      const resp = await QP.host.fetch("/envs");
+      // ⚠️ 不能用 host.fetch：它对 /envs 这类管理端点不注入 Authorization（真机 401）。
+      // 改原生 fetch + 宿主 SDK 同款鉴权头（getApiUrl 补 /api、getApiToken 取 Bearer）。
+      const H = QP.host;
+      const url = typeof H.getApiUrl === "function" ? H.getApiUrl("/envs") : "/api/envs";
+      let token = "";
+      try {
+        token = typeof H.getApiToken === "function"
+          ? H.getApiToken()
+          : (localStorage.getItem("qwenpaw_auth_token") || "");
+      } catch (e) { token = ""; }
+      const headers = {};
+      if (token) headers.Authorization = "Bearer " + token;
+      const resp = await fetch(url, { headers });
       if (!resp.ok) { err("读取环境变量失败:", resp.status); return; }
       const list = await resp.json();
       const hit = Array.isArray(list)

@@ -1,6 +1,6 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.7.5）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.7.6）｜插件 ID：`qwenpaw-ofv-viewer`
 
 在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览，**放行清单可用环境变量 `OFV_NATIVE_EXTS` 自定义**。
 
@@ -273,6 +273,10 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 ---
 
 ## 版本更新摘要
+
+### v0.7.6 (2026-10-10)
+
+- **修复 `OFV_NATIVE_EXTS` 真机读取 401**：`host.fetch` 对 `/envs` 这类管理端点不注入 `Authorization`（经反代访问时 401，本机回环因免鉴权白名单看不出）。改用原生 `fetch` + 宿主 SDK 同款鉴权头（`getApiUrl` 补前缀、`getApiToken` 取 Bearer token），与宿主设置页读环境变量的方式一致
 
 ### v0.7.5 (2026-10-10)
 
