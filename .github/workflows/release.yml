@@ -1,0 +1,87 @@
+name: Release on Tag
+
+# 推送形如 v0.6.5 的 tag 时自动：装依赖 → 全量构建 → 打包 zip → 建 GitHub Release 并上传产物
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "要发布的版本号（不带 v 前缀），仅手动触发时用于校验"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve version
+        id: ver
+        run: |
+          # 单一真相源：src/index.js 里的 const VERSION
+          SRC_VER=$(node -e "const s=require('fs').readFileSync('src/index.js','utf8');const m=s.match(/const VERSION = \"([^\"]+)\"/);if(!m){process.exit(1)}console.log(m[1])")
+          echo "src=$SRC_VER"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="v$SRC_VER"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          # 校验 tag 与源码版本一致，防止发布错版本
+          if [ "$TAG" != "v$SRC_VER" ]; then
+            echo "::error::tag ($TAG) 与 src/index.js VERSION (v$SRC_VER) 不一致"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$SRC_VER" >> "$GITHUB_OUTPUT"
+
+      - name: Build (full)
+        run: npm run build:full
+
+      - name: Package release zip
+        run: npm run package
+
+      - name: Sanity check artifacts
+        run: |
+          ZIP="dist-release/qwenpaw-ofv-viewer-v${{ steps.ver.outputs.version }}.zip"
+          test -f "$ZIP" || { echo "zip 缺失: $ZIP"; exit 1; }
+          echo "zip 大小: $(wc -c < "$ZIP") bytes"
+          unzip -l "$ZIP" | tail -2
+
+      - name: Upload zip as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qwenpaw-ofv-viewer-v${{ steps.ver.outputs.version }}
+          path: dist-release/*.zip
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: "OFV 万能文件预览 v${{ steps.ver.outputs.version }}"
+          generate_release_notes: true
+          files: dist-release/*.zip
+          body: |
+            ## 安装
+
+            下载 `qwenpaw-ofv-viewer-v${{ steps.ver.outputs.version }}.zip`，解压后将
+            `qwenpaw-ofv-viewer/` 整个目录放入 `~/.qwenpaw/plugins/`，重启 QwenPaw 即可。
+
+            > ⚠️ 请勿使用 `plugin uninstall`（会删除整个插件目录）。回滚请手动删除
+            > `~/.qwenpaw/plugins/qwenpaw-ofv-viewer/`。
