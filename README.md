@@ -1,6 +1,6 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.7.3）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.7.4）｜插件 ID：`qwenpaw-ofv-viewer`
 
 在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览，**放行清单可用环境变量 `OFV_NATIVE_EXTS` 自定义**。
 
@@ -273,6 +273,12 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 ---
 
 ## 版本更新摘要
+
+### v0.7.4 (2026-10-10)
+
+- **对齐宿主原生预览的拉取逻辑**：逆向宿主 console bundle 确认——带 `artifactUrl` 时宿主直接 `fetch(artifactUrl, {鉴权头})`，不挑前缀。插件旧版要求 `/files/preview/` 前缀才直连，导致运行中卡片的可靠路径被弃用。现改为有 artifactUrl 就直连
+- 相对路径兜底补 `X-Chat-Id` 头（宿主 Files 面板同款），并优先走"当前 agent"（不带 X-Agent-Id），再遍历其他 agent
+- E2E：artifactUrl 直连、相对路径子路径命中两场景均渲染成功
 
 ### v0.7.3 (2026-10-10)
 

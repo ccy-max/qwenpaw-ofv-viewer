@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.3";
+  const VERSION = "0.7.4";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -189,8 +189,10 @@
       throw new Error("宿主 fetch 不可用");
     }
     const candidates = [];
-    // 候选0：artifactUrl 直连（带 token，最可靠）
-    if (artifactUrl && /^\/files\/preview\//.test(String(artifactUrl))) {
+    // 候选0：artifactUrl 直连——照抄宿主原生预览逻辑（v0.7.4）：
+    // 宿主对运行中卡片就是 fetch(artifactUrl, {headers: 鉴权})，不挑前缀、不猜路径。
+    // 旧版要求 /^\/files\/preview\// 才直连，导致带 token 的可靠路径被弃用。
+    if (artifactUrl) {
       candidates.push({ direct: String(artifactUrl), agent: "" });
     }
     const raw = String(absPath || "");
@@ -241,30 +243,38 @@
         lastErr = (c.direct ? "direct" : c.root + ":" + c.path + "@" + (c.agent || "cur")) + " -> " + (e && e.message ? e.message : e);
       }
     }
-    // 相对路径（无 agent 归属）兜底：
-    // 卡片可能给项目根相对路径（如 my-pm/backend/.../Foo.java，不带 /workspaces/ 段），
-    // 服务端 file-download 的 path 是相对「绑定项目根 / workspace 根」的，因此：
-    //   ① 逐级去头试（文件可能在更深的绑定根下）
-    //   ② 遍历全部 agent × {workspace, project} × 每级子路径
-    // basename 只在子路径全失败后最后尝试。
+    // 相对路径兜底（照抄宿主 Files 面板语义，v0.7.4 补 X-Chat-Id）：
+    // 宿主对 workspace 类 target 的请求头是 {鉴权, X-Chat-Id}（无 chat 时用
+    // X-Session-Project-Dir）。file-download 的 path 相对「该 chat 绑定的项目根」。
+    // 运行中卡片给的相对路径（my-pm/backend/.../Foo.java）直接原样试——它通常
+    // 就是相对当前 chat 绑定根的路径；再逐级去头兜底，basename 最后。
     const base = segs[segs.length - 1] || "";
     if (base && !pathAgents.length) {
-      const agents = await listAgentIds();
-      // 生成相对子路径序列：全长 → 逐级去头 → basename（放最后）
+      const chatId = (() => {
+        try { return window.QwenPaw?.context?.chatId || window.QwenPaw?.chatId || ""; }
+        catch (e) { return ""; }
+      })();
+      const extraHeaders = chatId ? { "X-Chat-Id": chatId } : {};
+      const agents = [""]; // 空串 = 不带 X-Agent-Id（宿主默认当前 agent），优先
+      try { agents.push(...(await listAgentIds())); } catch (e) {}
+      const seen = new Set();
       const relVariants = [];
-      for (let i = 0; i < segs.length; i++) {
-        relVariants.push(segs.slice(i).join("/"));
-      }
+      for (let i = 0; i < segs.length; i++) relVariants.push(segs.slice(i).join("/"));
       for (const ag of agents) {
         for (const root of ["project", "workspace"]) {
           for (const rel of relVariants) {
+            const key = root + ":" + rel + "@" + ag;
+            if (seen.has(key)) continue;
+            seen.add(key);
             try {
               const url = "/workspace/file-download?path=" + encodeURIComponent(rel) + "&root=" + root;
-              const resp = await QP.host.fetch(url, { headers: { "X-Agent-Id": ag } });
+              const init = ag ? { headers: { "X-Agent-Id": ag, ...extraHeaders } }
+                              : Object.keys(extraHeaders).length ? { headers: extraHeaders } : undefined;
+              const resp = await QP.host.fetch(url, init);
               if (resp.ok) return await resp.blob();
-              lastErr = root + ":" + rel + "@" + ag + " -> HTTP " + resp.status;
+              lastErr = root + ":" + rel + "@" + (ag || "cur") + " -> HTTP " + resp.status;
             } catch (e) {
-              lastErr = root + ":" + rel + "@" + ag + " -> " + (e && e.message ? e.message : e);
+              lastErr = root + ":" + rel + "@" + (ag || "cur") + " -> " + (e && e.message ? e.message : e);
             }
           }
         }
