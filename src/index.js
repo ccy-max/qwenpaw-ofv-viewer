@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.8";
+  const VERSION = "0.7.9";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -362,6 +362,8 @@
       dlBtn.__qpOfvDl = true; // bindDownload 会跳过：避免重复挂监听触发两次下载
       headRight.insertBefore(dlBtn, ref);
     };
+    if (!ctx.hasCodeActions) { inject(); return; } // v0.7.9：非代码视图（md富文本/office/pdf/csv…）
+    // 永远不会有 .ofv-code-action，直接注入，不再空等轮询超时（原 ~2.5s 延迟）
     if (hoist()) return;
     const obs = new MutationObserver(() => { if (hoist()) obs.disconnect(); });
     obs.observe(scope, { childList: true, subtree: true });
@@ -778,8 +780,11 @@
 
       // OFV 文本面板的「换行 / 复制 / 下载」是渲染后异步生成的
       // （.ofv-code-action）搬到标题栏；富文本/表格类没有这些按钮则自注入 复制/下载。
+      // v0.7.9：md 在 OFV 里走 marked 富文本渲染（无代码按钮），与 office/pdf/csv 等
+      // 一样在路由时就判定，直接注入不等轮询（修按钮延迟 ~2.5s 的问题）。
       const isText = family === "text" || family === "plain";
-      ensureHeaderActions(ofvBox, headRight, citeBtn, { blob, name, isText });
+      const hasCodeActions = isText && ext !== "md" && ext !== "markdown";
+      ensureHeaderActions(ofvBox, headRight, citeBtn, { blob, name, isText, hasCodeActions });
       // 接管所有下载按钮：用宿主 fetch 到的 blob 直接下载（OFV 自带下载会出空文件）
       bindDownload(drawer, blob, name);
     } catch (e) {
