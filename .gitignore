@@ -14,3 +14,6 @@ OFV_*_TODO.md
 
 # 发布打包产物（CI/本地 package 生成，不提交）
 dist-release/
+
+# build-all.mjs 生成的 lib shim 源码（构建中间产物，可再生）
+src/libs/
