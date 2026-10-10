@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.4";
+  const VERSION = "0.7.5";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -47,6 +47,9 @@
     // 文本/代码（原生只支持代码块内预览，这里给带高亮的完整预览）
     "txt", "log", "json", "yaml", "yml", "toml", "ini", "conf",
     "py", "js", "ts", "tsx", "jsx", "java", "go", "rs", "c", "cpp", "h", "sh", "sql", "xml",
+    // 前端框架/标记（v0.7.5：vue/html 等纯文本，OFV langMap 原生支持）
+    "vue", "svelte", "astro", "scss", "less",
+    "kt", "swift", "rb", "php", "cs", "dart", "lua", "bat", "ps1",
   ];
   let NATIVE_EXTS = new Set(DEFAULT_NATIVE_EXTS);
   let OFV_EXTS = new Set(OFV_ALL_EXTS.filter((e) => !NATIVE_EXTS.has(e)));
@@ -80,7 +83,8 @@
     put("plain", ["txt", "log", "conf", "ini", "env", "properties", "md"]);
     put("text", ["json", "yaml", "yml", "toml", "xml", "py", "js", "ts", "tsx", "jsx",
       "java", "go", "rs", "c", "cpp", "h", "hpp", "sh", "bash", "sql", "rb", "php",
-      "swift", "kt", "cs", "proto", "hcl", "tf", "dockerfile", "makefile"]);
+      "swift", "kt", "cs", "proto", "hcl", "tf", "dockerfile", "makefile",
+      "vue", "svelte", "astro", "scss", "less", "dart", "lua", "bat", "ps1", "r"]);
     return m;
   })();
 

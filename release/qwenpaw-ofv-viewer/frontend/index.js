@@ -1,5 +1,5 @@
 (() => {
-  const $ = "0.7.4", K = "[ofv-viewer]", Y = "qwenpaw-ofv-viewer", Q = "OFV_NATIVE_EXTS", nt = [
+  const $ = "0.7.5", K = "[ofv-viewer]", Y = "qwenpaw-ofv-viewer", Q = "OFV_NATIVE_EXTS", nt = [
     // 图片：宿主原生预览已支持
     "png",
     "jpg",
@@ -63,7 +63,22 @@
     "h",
     "sh",
     "sql",
-    "xml"
+    "xml",
+    // 前端框架/标记（v0.7.5：vue/html 等纯文本，OFV langMap 原生支持）
+    "vue",
+    "svelte",
+    "astro",
+    "scss",
+    "less",
+    "kt",
+    "swift",
+    "rb",
+    "php",
+    "cs",
+    "dart",
+    "lua",
+    "bat",
+    "ps1"
   ];
   let A = new Set(nt), S = new Set(J.filter((e) => !A.has(e)));
   function rt(e) {
@@ -104,7 +119,17 @@
       "hcl",
       "tf",
       "dockerfile",
-      "makefile"
+      "makefile",
+      "vue",
+      "svelte",
+      "astro",
+      "scss",
+      "less",
+      "dart",
+      "lua",
+      "bat",
+      "ps1",
+      "r"
     ]), e;
   })(), _ = (...e) => {
     try {
