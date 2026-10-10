@@ -17,3 +17,4 @@ dist-release/
 
 # build-all.mjs 生成的 lib shim 源码（构建中间产物，可再生）
 src/libs/
+OFV_INTEGRATE_TODO.md

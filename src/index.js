@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.1";
+  const VERSION = "0.7.2";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -753,22 +753,39 @@
   // 这里只处理事件路径覆盖不到的气泡卡，并兼容网格卡作为双保险。
   // ================================================================
   // 文件名提取：白名单扩展名正则（避免把路径中 6 字母内的目录名误当扩展名）
-  // 扩展名集合可经 OFV_NATIVE_EXTS 配置变更 → 惰性重建缓存
+  // ⚠️ v0.7.2：字符类必须含 Unicode 字母/数字（\p{L}\p{N}）——旧版 [\w@.\-] 的
+  // \w 只匹配 ASCII，中文文件名（如 …/中文目录名…报告V1.0.docx）会被截成
+  // "V1.0.docx" 丢失目录 → 候选全 404。需 u flag 才支持 \p。
+  const CH = "\\p{L}\\p{N}@.\\-_%";
   let _nameRe = null;
   let _pathRe = null;
   function nameRe() {
     if (!_nameRe) _nameRe = OFV_EXTS.size ? new RegExp(
-      "([\\w@.\\-]+\\.(" + [...OFV_EXTS].join("|") + "))(?![\\w-])",
-      "i"
+      "([" + CH + "]+\\.(" + [...OFV_EXTS].join("|") + "))(?![" + CH + "\\w-])",
+      "iu"
     ) : /$^/; // 全放行时永不匹配
     return _nameRe;
   }
   function pathRe() {
+    // 段内不含空格（防同行多文件贪婪吞并）；带空格路径经 title 快路径直取
     if (!_pathRe) _pathRe = OFV_EXTS.size ? new RegExp(
-      "(\\/?[\\w@.\\-]+(?:\\/[\\w@.\\-]+)*\\.(" + [...OFV_EXTS].join("|") + "))(?![\\w-])",
-      "i"
+      "(\\/?[" + CH + "]+(?:\\/[\\p{L}\\p{N}@.\\-_%~+()（）\\[\\]]+)*\\.(" + [...OFV_EXTS].join("|") + "))(?![" + CH + "\\w-])",
+      "iu"
     ) : /$^/;
     return _pathRe;
+  }
+
+  /** 快路径：title/aria-label 本身就是纯路径时直接取，避免正则歧义。
+   *  兼容 aria-label 的「文件名 + 空格 + 完整路径」混合形态：从首个 "/" 起截取。 */
+  function directPathFromLabel(labeled) {
+    let s = String(labeled || "").trim();
+    if (!s) return "";
+    try { s = decodeURIComponent(s).replace(/\\/g, "/"); } catch (e) {}
+    const i = s.indexOf("/");
+    if (i >= 0) s = s.slice(i); // 丢掉路径前的文件名前缀（aria-label 形态）
+    const ext = getExt(s);
+    if (!ext || !OFV_EXTS.has(ext)) return "";
+    return s;
   }
 
   function tryTakeOverFromCard(card, ev) {
@@ -779,6 +796,8 @@
       card.getAttribute("aria-label") ||
       card.getAttribute("data-path") ||
       "";
+    // 快路径：title 本身是纯接管路径（网格卡形态）→ 直接取，绕开文本正则歧义
+    const direct = directPathFromLabel(labeled);
     const text = (card.textContent || "").replace(/\s+/g, " ").trim();
     const hay = (labeled + " " + text).trim();
     // 匹配带扩展名的文件名（支持 URL 编码的中文）
@@ -787,20 +806,22 @@
       const d = decodeURIComponent(hay);
       if (d.indexOf("\uFFFD") === -1) decoded = d;
     } catch (e) {}
-    const m = nameRe().exec(decoded);
+    const m = nameRe().exec(direct || decoded);
     if (!m) return false;
     const name = getBaseName(m[1]);
     const ext = getExt(name);
     if (!OFV_EXTS.has(ext)) return false;
 
-    // 提取路径：优先完整路径（title/aria-label 里的绝对或工作区路径），退化用 basename
-    let rawPath = "";
-    const pathMatch = pathRe().exec(decoded);
-    if (pathMatch) {
-      rawPath = pathMatch[1];
-      if (!rawPath.startsWith("/")) rawPath = "/" + rawPath;
-    } else {
-      rawPath = name; // basename 兜底（fetchBlob 有 workspace 根 basename 候选）
+    // 提取路径：快路径 > title/文本正则 > basename 兜底
+    let rawPath = direct || "";
+    if (!rawPath) {
+      const pathMatch = pathRe().exec(decoded);
+      if (pathMatch) {
+        rawPath = pathMatch[1];
+        if (!rawPath.startsWith("/")) rawPath = "/" + rawPath;
+      } else {
+        rawPath = name; // basename 兜底（fetchBlob 有 workspace 根 basename 候选）
+      }
     }
     // 卡片内若有带 /files/preview/ 的链接/img，优先取其真实路径
     try {

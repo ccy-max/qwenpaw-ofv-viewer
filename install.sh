@@ -4,7 +4,9 @@
 set -e
 
 REPO=$(cd "$(dirname "$0")" && pwd)
-PLUGINS_DIR="~/.qwenpaw/plugins"
+# QwenPaw 工作目录：默认 ~/.qwenpaw，可用 QWENPAW_HOME 覆盖
+QWENPAW_HOME="${QWENPAW_HOME:-$HOME/.qwenpaw}"
+PLUGINS_DIR="$QWENPAW_HOME/plugins"
 PLUGIN_ID="qwenpaw-ofv-viewer"
 DST="$PLUGINS_DIR/$PLUGIN_ID"
 

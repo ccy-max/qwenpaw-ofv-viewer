@@ -1,6 +1,6 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.7.1）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.7.2）｜插件 ID：`qwenpaw-ofv-viewer`
 
 在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览，**放行清单可用环境变量 `OFV_NATIVE_EXTS` 自定义**。
 
@@ -273,6 +273,11 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 ---
 
 ## 版本更新摘要
+
+### v0.7.2 (2026-10-10)
+
+- **修复中文文件名预览 404**：文件名提取正则的字符类 `[\w@.\-]` 中 `\w` 只匹配 ASCII，中文文件名（如 `…/中文目录/设计方案V1.0.docx`）会被截成 `V1.0.docx` 丢失目录 → 拉取候选全 404。改用 Unicode `\p{L}\p{N}`（u flag），并新增 title/aria-label **纯路径快路径直取**（网格卡 title=完整绝对路径时绕开文本正则歧义），段内禁空格防同行多文件贪婪吞并
+- 单测 7 场景：中文绝对路径 / 相对路径 / 同行两文件 / 带空格名 / URL 编码 / 目录名带点 / aria-label 混合形态
 
 ### v0.7.1 (2026-10-10)
 
