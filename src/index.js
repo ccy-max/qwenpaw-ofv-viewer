@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.9";
+  const VERSION = "0.8.0";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -207,6 +207,13 @@
     }
     const raw = String(absPath || "");
     const p = raw.replace(/^\/+/, "");
+    // 候选0.5：/api/files/preview/<绝对路径> —— 宿主原生预览对绝对路径（含 /tmp
+    // 等工作区外文件，agent shell 临时产物）走的就是这个端点，授权边界比
+    // file-download 宽（实测可读 /tmp 文件；file-download 一律 400/403/404）。
+    // v0.8.0：此前 OFV 只走 file-download 级联，此类文件原生能看、OFV 拉不到。
+    if (raw.startsWith("/")) {
+      candidates.push({ direct: "/files/preview/" + p, agent: "" });
+    }
     const segs = p.split("/").filter(Boolean);
     const push = (root, path, agent) => {
       if (!path) return;

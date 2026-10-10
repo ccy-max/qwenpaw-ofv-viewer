@@ -1,5 +1,5 @@
 (() => {
-  const Z = "0.7.9", tt = "[ofv-viewer]", et = "qwenpaw-ofv-viewer", M = "OFV_NATIVE_EXTS", at = [
+  const Z = "0.8.0", tt = "[ofv-viewer]", et = "qwenpaw-ofv-viewer", M = "OFV_NATIVE_EXTS", at = [
     // 图片：宿主原生预览已支持
     "png",
     "jpg",
@@ -214,12 +214,14 @@
       throw new Error("宿主 fetch 不可用");
     const n = [];
     t && n.push({ direct: String(t), agent: "" });
-    const s = String(e || ""), a = s.replace(/^\/+/, "").split("/").filter(Boolean), c = (r, f, x) => {
-      f && (n.some((w) => w.root === r && w.path === f && w.agent === x) || n.push({ root: r, path: f, agent: x }));
+    const s = String(e || ""), i = s.replace(/^\/+/, "");
+    s.startsWith("/") && n.push({ direct: "/files/preview/" + i, agent: "" });
+    const a = i.split("/").filter(Boolean), c = (r, f, v) => {
+      f && (n.some((w) => w.root === r && w.path === f && w.agent === v) || n.push({ root: r, path: f, agent: v }));
     }, d = [ut(s)].filter(Boolean);
     for (const r of d) {
-      const f = ht(s), x = f ? s.slice(f.length + 1) : "";
-      f && x && c("project:" + f, x, r);
+      const f = ht(s), v = f ? s.slice(f.length + 1) : "";
+      f && v && c("project:" + f, v, r);
       const w = "/workspaces/" + r + "/", m = s.indexOf(w);
       m >= 0 && c("workspace", s.slice(m + w.length), r);
       const h = Math.min(a.length, 3);
@@ -233,11 +235,11 @@
       if (!u.has(f)) {
         u.add(f);
         try {
-          const x = r.direct ? r.direct : "/workspace/file-download?path=" + encodeURIComponent(r.path) + "&root=" + encodeURIComponent(r.root), w = r.agent ? { headers: { "X-Agent-Id": r.agent } } : void 0, m = await o.host.fetch(x, w);
+          const v = r.direct ? r.direct : "/workspace/file-download?path=" + encodeURIComponent(r.path) + "&root=" + encodeURIComponent(r.root), w = r.agent ? { headers: { "X-Agent-Id": r.agent } } : void 0, m = await o.host.fetch(v, w);
           if (m.ok) return await m.blob();
           p = (r.direct ? "direct" : r.root + ":" + r.path + "@" + (r.agent || "cur")) + " -> HTTP " + m.status;
-        } catch (x) {
-          p = (r.direct ? "direct" : r.root + ":" + r.path + "@" + (r.agent || "cur")) + " -> " + (x && x.message ? x.message : x);
+        } catch (v) {
+          p = (r.direct ? "direct" : r.root + ":" + r.path + "@" + (r.agent || "cur")) + " -> " + (v && v.message ? v.message : v);
         }
       }
     }
@@ -249,14 +251,14 @@
         } catch {
           return "";
         }
-      })(), f = r ? { "X-Chat-Id": r } : {}, x = [""];
+      })(), f = r ? { "X-Chat-Id": r } : {}, v = [""];
       try {
-        x.push(...await mt());
+        v.push(...await mt());
       } catch {
       }
       const w = /* @__PURE__ */ new Set(), m = [];
       for (let h = 0; h < a.length; h++) m.push(a.slice(h).join("/"));
-      for (const h of x)
+      for (const h of v)
         for (const g of ["project", "workspace"])
           for (const C of m) {
             const T = g + ":" + C + "@" + h;
@@ -274,7 +276,7 @@
     }
     throw new Error("拉取失败（已试 " + u.size + " 个候选）最后: " + p);
   }
-  async function xt(e) {
+  async function vt(e) {
     try {
       const t = await e.text();
       if (navigator.clipboard && navigator.clipboard.writeText)
@@ -301,26 +303,26 @@
       n.style.background = "#fff";
     }, n.onclick = o, n;
   }
-  function vt(e, t, o, n) {
+  function xt(e, t, o, n) {
     let s = !1;
     const i = () => {
       if (s) return !0;
       const u = e.querySelectorAll(".ofv-code-action");
       if (!u.length) return !1;
-      let v = o.nextSibling;
+      let x = o.nextSibling;
       return u.forEach((r) => {
-        r.setAttribute("data-qp-ofv-hoisted", "1"), r.style.cssText += "margin-left:8px;", t.insertBefore(r, v);
+        r.setAttribute("data-qp-ofv-hoisted", "1"), r.style.cssText += "margin-left:8px;", t.insertBefore(r, x);
       }), s = !0, !0;
     }, a = () => {
       if (s) return;
       s = !0;
       const u = o.nextSibling;
       n.isText && t.insertBefore(
-        nt("复制", "复制文本内容", () => xt(n.blob)),
+        nt("复制", "复制文本内容", () => vt(n.blob)),
         u
       );
-      const v = nt("下载", "下载文件", () => rt(n.blob, n.name));
-      v.__qpOfvDl = !0, t.insertBefore(v, u);
+      const x = nt("下载", "下载文件", () => rt(n.blob, n.name));
+      x.__qpOfvDl = !0, t.insertBefore(x, u);
     };
     if (!n.hasCodeActions) {
       a();
@@ -416,11 +418,11 @@
       return y("未找到聊天输入框，引用失败"), !1;
     const o = "@ " + String(e || ""), n = t.selectionStart ?? t.value.length, s = t.selectionEnd ?? n, i = t.value.slice(0, n), a = t.value.slice(s), c = i && !/\s$/.test(i) ? " " : "", d = i + c + o + " " + a, p = Object.getPrototypeOf(t), u = Object.getOwnPropertyDescriptor(p, "value");
     u && u.set ? u.set.call(t, d) : t.value = d, t.dispatchEvent(new Event("input", { bubbles: !0 }));
-    const v = i.length + c.length + o.length + 1;
+    const x = i.length + c.length + o.length + 1;
     return requestAnimationFrame(() => {
       t.focus();
       try {
-        t.setSelectionRange(v, v);
+        t.setSelectionRange(x, x);
       } catch {
       }
     }), k("已引用到聊天:", o), !0;
@@ -510,8 +512,8 @@
     p.style.cssText = "font-size:11.5px;color:#94a3b8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;", c.appendChild(d), c.appendChild(p);
     const u = () => {
       const l = [];
-      t && l.push(t.toUpperCase()), v.value != null && l.push(ft(v.value)), p.textContent = l.join(" · ");
-    }, v = { value: null }, r = document.createElement("button");
+      t && l.push(t.toUpperCase()), x.value != null && l.push(ft(x.value)), p.textContent = l.join(" · ");
+    }, x = { value: null }, r = document.createElement("button");
     r.textContent = "✕", r.title = "关闭 (Esc)", r.style.cssText = "border:0;background:#f1f5f9;color:#475569;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;", r.onmouseenter = () => {
       r.style.background = "#e2e8f0";
     }, r.onmouseleave = () => {
@@ -600,7 +602,7 @@
     });
     let A;
     try {
-      A = await gt(o, n), v.value = A && typeof A.size == "number" ? A.size : null, u();
+      A = await gt(o, n), x.value = A && typeof A.size == "number" ? A.size : null, u();
     } catch (l) {
       S.textContent = "拉取文件失败：" + (l && l.message ? l.message : l) + "（点击关闭）", S.onclick = P, y("拉取失败", o, l);
       return;
@@ -630,7 +632,7 @@
         onError: (J, Q) => y("OFV 渲染错误", Q && Q.name, J)
       }), k("已打开 OFV 预览:", e, "(" + t + ")", o);
       const it = _ === "text" || _ === "plain";
-      vt(l, g, f, { blob: A, name: e, isText: it, hasCodeActions: it && t !== "md" && t !== "markdown" }), bt(i, A, e);
+      xt(l, g, f, { blob: A, name: e, isText: it, hasCodeActions: it && t !== "md" && t !== "markdown" }), bt(i, A, e);
     } catch (l) {
       S.textContent = "OFV 渲染失败：" + (l && l.message ? l.message : l) + "（点击关闭）", S.onclick = P, y("OFV 渲染失败", l);
     }
@@ -731,12 +733,12 @@
       r ? (u = r[1], u.startsWith("/") || (u = "/" + u)) : u = d;
     }
     try {
-      const r = e.querySelector('a[href*="/files/preview/"], img[src*="/files/preview/"]'), f = r && (r.getAttribute("href") || r.getAttribute("src")) || "", x = pt(f);
-      x && (u = x);
+      const r = e.querySelector('a[href*="/files/preview/"], img[src*="/files/preview/"]'), f = r && (r.getAttribute("href") || r.getAttribute("src")) || "", v = pt(f);
+      v && (u = v);
     } catch {
     }
-    const v = H(u);
-    if (!v) return !1;
+    const x = H(u);
+    if (!x) return !1;
     if (t) {
       t.preventDefault(), t.stopPropagation();
       try {
@@ -744,7 +746,7 @@
       } catch {
       }
     }
-    return k("接管预览(DOM):", d, "(" + p + ") path=", v), G(d, p, v, ""), !0;
+    return k("接管预览(DOM):", d, "(" + p + ") path=", x), G(d, p, x, ""), !0;
   }
   function Pt() {
     window.__QP_OFV_DOM__ || (window.__QP_OFV_DOM__ = !0, document.addEventListener(

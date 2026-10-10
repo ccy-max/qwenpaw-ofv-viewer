@@ -1,6 +1,6 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.7.9）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.8.0）｜插件 ID：`qwenpaw-ofv-viewer`
 
 在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览，**放行清单可用环境变量 `OFV_NATIVE_EXTS` 自定义**。
 
@@ -275,6 +275,10 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 ---
 
 ## 版本更新摘要
+
+### v0.8.0 (2026-10-10)
+
+- **修复工作区外文件（如 `/tmp/xxx.sql`）预览失败**：agent 用 shell 在 `/tmp` 等目录生成的文件，宿主原生预览能打开（走 `/api/files/preview/<绝对路径>` 端点），但 OFV 只试 `file-download` 级联（授权边界限工作区/项目目录）→ 几十个候选全 404/403。现绝对路径优先加 `files/preview` 直连候选，与宿主原生行为对齐。注意该端点受宿主 `security.file_guard.allow_preview_outside_workspace` 配置控制，关闭时此类文件仍不可预览
 
 ### v0.7.9 (2026-10-10)
 
