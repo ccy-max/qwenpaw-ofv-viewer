@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.7.2";
+  const VERSION = "0.7.3";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -241,19 +241,31 @@
         lastErr = (c.direct ? "direct" : c.root + ":" + c.path + "@" + (c.agent || "cur")) + " -> " + (e && e.message ? e.message : e);
       }
     }
-    // 相对路径（无 agent 归属）兜底：遍历全部 agent × basename
+    // 相对路径（无 agent 归属）兜底：
+    // 卡片可能给项目根相对路径（如 my-pm/backend/.../Foo.java，不带 /workspaces/ 段），
+    // 服务端 file-download 的 path 是相对「绑定项目根 / workspace 根」的，因此：
+    //   ① 逐级去头试（文件可能在更深的绑定根下）
+    //   ② 遍历全部 agent × {workspace, project} × 每级子路径
+    // basename 只在子路径全失败后最后尝试。
     const base = segs[segs.length - 1] || "";
     if (base && !pathAgents.length) {
       const agents = await listAgentIds();
+      // 生成相对子路径序列：全长 → 逐级去头 → basename（放最后）
+      const relVariants = [];
+      for (let i = 0; i < segs.length; i++) {
+        relVariants.push(segs.slice(i).join("/"));
+      }
       for (const ag of agents) {
-        for (const root of ["workspace", "project"]) {
-          try {
-            const url = "/workspace/file-download?path=" + encodeURIComponent(base) + "&root=" + root;
-            const resp = await QP.host.fetch(url, { headers: { "X-Agent-Id": ag } });
-            if (resp.ok) return await resp.blob();
-            lastErr = root + ":" + base + "@" + ag + " -> HTTP " + resp.status;
-          } catch (e) {
-            lastErr = root + ":" + base + "@" + ag + " -> " + (e && e.message ? e.message : e);
+        for (const root of ["project", "workspace"]) {
+          for (const rel of relVariants) {
+            try {
+              const url = "/workspace/file-download?path=" + encodeURIComponent(rel) + "&root=" + root;
+              const resp = await QP.host.fetch(url, { headers: { "X-Agent-Id": ag } });
+              if (resp.ok) return await resp.blob();
+              lastErr = root + ":" + rel + "@" + ag + " -> HTTP " + resp.status;
+            } catch (e) {
+              lastErr = root + ":" + rel + "@" + ag + " -> " + (e && e.message ? e.message : e);
+            }
           }
         }
       }

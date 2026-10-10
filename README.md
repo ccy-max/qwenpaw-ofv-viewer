@@ -1,6 +1,6 @@
 # 📄 OFV 万能文件预览
 
-> OFV 万能文件预览插件（v0.7.2）｜插件 ID：`qwenpaw-ofv-viewer`
+> OFV 万能文件预览插件（v0.7.3）｜插件 ID：`qwenpaw-ofv-viewer`
 
 在 QwenPaw 对话里接管文件卡片的预览，用 [Open File Viewer (OFV)](https://github.com/xushanpei/open-file-viewer) 在浏览器内直接渲染各类文件——**无需 OnlyOffice / 文档服务器，零后端**。未覆盖的格式（图片 / md / html / csv 等）自动放行回原生预览，**放行清单可用环境变量 `OFV_NATIVE_EXTS` 自定义**。
 
@@ -273,6 +273,11 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 ---
 
 ## 版本更新摘要
+
+### v0.7.3 (2026-10-10)
+
+- **修复项目根相对路径预览 404**：运行中会话的交付物卡可能给**相对项目根**的路径（如 `app/backend/src/…/Foo.java`，不带 `/workspaces/` 段）。旧逻辑对相对路径只试 basename，子路径全丢 → 0 命中。现改为：遍历全部 agent × {project, workspace} × **逐级去头的相对子路径**（全路径优先、basename 最后），任一命中即拉取
+- E2E：mock 宿主鉴权 + 服务端绑定根语义，相对路径成功拉取并渲染
 
 ### v0.7.2 (2026-10-10)
 
