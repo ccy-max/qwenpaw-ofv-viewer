@@ -205,7 +205,7 @@ qwenpaw plugin list
 rm -rf ~/.qwenpaw/plugins/qwenpaw-ofv-viewer
 ```
 
-更新前建议先备份 `plugins/` 目录（`install.sh` 已自动备份）。
+更新前建议先备份：`cp -r ~/.qwenpaw/plugins ~/.qwenpaw/plugin_backups/plugins-$(date +%Y%m%d-%H%M%S)`（备份放 `plugins/` 之外的目录，勿放 `plugins/` 下——加载器会扫到同 id 重复插件）。
 
 ---
 
@@ -234,10 +234,13 @@ npm run build:full     # = node build-all.mjs && vite build（渲染器+大库+p
 npm run package        # 组装 release/ 并打 dist-release/qwenpaw-ofv-viewer-v<版本>.zip
 ```
 
-### 装机（开发机）
+### 安装验证（开发机）
+
+统一从 Release zip 安装（与线上同一产物，避免本地/线上版本漂移）：
 
 ```bash
-./install.sh           # 备份 → 铺产物 → 同步 plugin.json → 版本一致性校验
+unzip dist-release/qwenpaw-ofv-viewer-v<版本>.zip -d ~/.qwenpaw/plugins/
+qwenpaw plugin list   # 确认版本号已更新
 ```
 
 ### 发布（自动）
@@ -267,7 +270,7 @@ v0.6.5 起下载已由插件接管（用宿主拉到的 blob 直接触发），�
 默认放行清单（图片 + `md` `html` `css` `csv`）里的格式走宿主原生预览。想让 OFV 接管某个格式，把它从环境变量 `OFV_NATIVE_EXTS` 的值里去掉即可（v0.7.7 起 html/css/md/csv 已可被接管：html/css/md 源码高亮、csv 表格）。
 
 **Q：插件列表版本号没变？**
-宿主版本来自安装目录的 `plugin.json`。手动只替换 `frontend/` 产物不会更新版本号——用 `./install.sh`（会同步 plugin.json）或重装 release 目录。
+宿主版本来自安装目录的 `plugin.json`。手动只替换 `frontend/` 产物不会更新版本号——请连同 `plugin.json` 一起替换，或直接从 Release zip 整体重装。
 
 **Q：构建报堆内存不足（OOM）？**
 `NODE_OPTIONS=--max-old-space-size=3072 npm run build:full`。
