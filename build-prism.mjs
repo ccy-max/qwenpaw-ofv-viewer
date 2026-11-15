@@ -45,9 +45,13 @@ const allSrc =
 
 mkdirSync(resolve(here, "src/libs"), { recursive: true });
 writeFileSync(resolve(here, "src/libs/_prism-all.js"), allSrc);
+// v0.8.2：prismjs.js 不再 re-export npm prismjs（只含 markup/css/clike/javascript
+// 四个基础语言），改为 re-export _prism-all.js 的全量全局 Prism。OFV 的 textPlugin
+// 通过 import("prismjs") 拿模块实例 —— 旧形态下 java/py/go 等组件语言全无高亮
+// （基础语言 js→javascript、vue→markup 正常，正是实测现象）。
 writeFileSync(
   resolve(here, "src/libs/_prismjs.js"),
-  `import * as M from "prismjs";\nexport default M;\nexport * from "prismjs";\n`
+  `import Prism from "./_prism-all.js";\nexport default Prism;\n`
 );
 console.log(`prism-all 拼接：核心 + ${parts.length - 1} 组件${missing.length ? "（缺失: " + missing + "）" : ""} = ${(allSrc.length / 1024) | 0}KB`);
 

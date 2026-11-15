@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.8.0";
+  const VERSION = "0.8.2";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -34,20 +34,24 @@
     // 从 OFV_NATIVE_EXTS 配置里去掉即可让 OFV 接管（v0.7.7）
     "md", "mdx", "html", "htm", "css", "csv",
   ];
-  // OFV 可接管全集
-  // v0.4.0：pdf 从原生 <embed> 改为 OFV 接管（可缩放/目录/搜索，worker 自托管不走 CDN）
+  // OFV 可接管全集（与 EXT_RENDERER 路由表保持一致，v0.8.1 补齐差集：
+  // xlsm/docm/pptm 等宏格式此前配了路由却不在全集，永远不会被接管）
   const OFV_ALL_EXTS = [
     // pdf（v0.4.0 接管）
     "pdf",
-    // office（含老格式，原生都不支持）
-    "doc", "docx", "xls", "xlsx", "ppt", "pptx", "rtf", "odt", "ods", "odp",
+    // office（含老格式与宏格式，原生都不支持）
+    "doc", "docx", "docm", "dot", "dotx", "dotm",
+    "xls", "xlsx", "xlsm", "xlsb",
+    "ppt", "pptx", "pptm", "pps", "ppsx", "ppsm", "potx", "potm",
+    "rtf", "odt", "fodt", "ods", "fods", "odp", "fodp",
     // 压缩包
     "zip", "rar", "7z", "tar", "gz", "tgz", "bz2",
     // 邮件
     "eml", "msg", "mbox",
     // 文本/代码（原生只支持代码块内预览，这里给带高亮的完整预览）
-    "txt", "log", "json", "yaml", "yml", "toml", "ini", "conf",
-    "py", "js", "ts", "tsx", "jsx", "java", "go", "rs", "c", "cpp", "h", "sh", "sql", "xml",
+    "txt", "log", "json", "yaml", "yml", "toml", "ini", "conf", "env", "properties",
+    "py", "js", "ts", "tsx", "jsx", "java", "go", "rs", "c", "cpp", "h", "hpp",
+    "sh", "bash", "sql", "xml", "proto", "hcl", "tf", "dockerfile", "makefile", "r",
     // 前端框架/标记（v0.7.5：vue/html 等纯文本，OFV langMap 原生支持）
     "vue", "svelte", "astro", "scss", "less",
     "kt", "swift", "rb", "php", "cs", "dart", "lua", "bat", "ps1",
@@ -70,7 +74,6 @@
   function rebuildExtSets() {
     OFV_EXTS = new Set(OFV_ALL_EXTS.filter((e) => !NATIVE_EXTS.has(e)));
     _nameRe = null;
-    _pathRe = null;
   }
 
   // 扩展名 → 渲染器 chunk 路由（v0.4.0 细拆：点 docx 不再被迫下载 xlsx/pptx 解析器）
@@ -130,22 +133,7 @@
   }
 
   /** 从 /files/preview/... URL 提取文件路径（同宿主 internalFileLinks 的 z() 逻辑） */
-  function pathFromPreviewUrl(url) {
-    const s = String(url || "");
-    const marker = "/files/preview/";
-    const i = s.indexOf(marker);
-    if (i < 0) return "";
-    const tail = s.slice(i + marker.length).split(/[?#]/, 1)[0];
-    if (!tail) return "";
-    try {
-      const dec = decodeURIComponent(tail).replace(/\\/g, "/");
-      return /^[a-z]:\//i.test(dec) ? dec : "/" + dec.replace(/^\/+/, "");
-    } catch (e) {
-      return "";
-    }
-  }
-
-  /** 从绝对路径提取所属 agent id：/…/workspaces/<agent_id>/…（QwenPaw 标准目录布局） */
+    /** 从绝对路径提取所属 agent id：/…/workspaces/<agent_id>/…（QwenPaw 标准目录布局） */
   function agentIdFromPath(absPath) {
     const m = /\/workspaces\/([^/]+)\//.exec(String(absPath || ""));
     return m ? m[1] : "";
@@ -164,140 +152,169 @@
     return "";
   }
 
-  /** 列出全部 agent id（用于相对路径无归属信息时的遍历兜底）
-   *  ⚠️ host.fetch 内部会经 getApiUrl(ce) 自动补 /api 前缀 —— 传 /api/agents 会变成
-   *  /api/api/agents（真机 404 实锤，见 v0.2.3），必须传 /agents */
-  async function listAgentIds() {
-    const QP = window.QwenPaw;
+  /** 当前会话的 chatId（X-Chat-Id 头用）。
+   *  官方 FilePreview 的 chatId 与路由 /chat/<id> 同源（routeChatId，会话解析后
+   *  即后端真实 chat id，见 pages/Chat/index.tsx 的 const chatId = routeChatId）。
+   *  宿主 host bridge 没有暴露 chatId/context，URL 是插件侧唯一可靠来源。 */
+  function currentChatId() {
     try {
-      const resp = await QP.host.fetch("/agents");
-      if (resp.ok) {
-        const j = await resp.json();
-        return (j.agents || []).map((a) => a.id).filter(Boolean);
-      }
+      const m = location.pathname.match(/^\/chat\/([^/?#]+)/);
+      if (m) return decodeURIComponent(m[1]);
     } catch (e) {}
-    return [];
+    return "";
   }
 
-  /** 用宿主带鉴权的 fetch 拉文件为 Blob。
-   *  ⚠️ URL 前缀：host.fetch 内部经 getApiUrl 自动补 "/api"（真机抓包 /api/api/ 404 实锤，
-   *  v0.2.3 修复）—— 传参必须写 "/workspace/..."，绝不能带 /api 前缀。
-   *  file-download 端点只收相对路径（绝对路径 400），root 解析三层耦合：
-   *    X-Agent-Id 头（agent 身份）→ 该 agent 绑定的项目目录 → 当前 chat 的会话级绑定覆盖。
-   *  Console 当前选中的 agent/会话都可能与文件所属不符 → 必须把三层全部显式化：
-   *    绝对路径 → 提取 (agent_id, 项目根, 相对子路径)，用 root=project:<项目根绝对路径>
-   *    （服务端 _resolve_extra_project_root 只按 agent 绑定列表判成员资格，绕开 chat 绑定）
-   *  级联顺序：
-   *    1. artifactUrl 直连（带 token，最可靠）
-   *    2. root=project:<推导的项目根> × 相对子路径（首选，无歧义直达）
-   *    3. root=workspace × 相对 workspace 的子路径
-   *    4. 旧式 root=workspace/project × 路径后缀（相对路径卡片兜底）
-   *    5. 相对路径（无归属信息）→ 遍历全部 agent × basename */
-  async function fetchBlob(absPath, artifactUrl) {
+  /** 绝对路径判定（官方 targetForPath 同款：/ 、~ 、Windows 盘符） */
+  function isAbsPath(p) {
+    const s = String(p || "");
+    return s.startsWith("/") || s.startsWith("~") || /^[a-z]:\//i.test(s);
+  }
+
+  /** 官方 buildAuthHeaders 等价（console/src/api/authHeaders.ts）：
+   *  Authorization Bearer + X-Agent-Id（agent-storage 里的选中 agent）。 */
+  function directFetchHeaders() {
+    const H = (window.QwenPaw && window.QwenPaw.host) || {};
+    const headers = {};
+    try {
+      const token = typeof H.getApiToken === "function"
+        ? H.getApiToken()
+        : (localStorage.getItem("qwenpaw_auth_token") || "");
+      if (token) headers.Authorization = "Bearer " + token;
+    } catch (e) {}
+    try {
+      const raw = sessionStorage.getItem("qwenpaw-agent-storage")
+        || localStorage.getItem("qwenpaw-agent-storage") || "";
+      const parsed = raw ? JSON.parse(raw) : null;
+      const ag = parsed && parsed.state && parsed.state.selectedAgent;
+      if (ag) headers["X-Agent-Id"] = ag;
+    } catch (e) {}
+    return headers;
+  }
+
+  /** 直连 URL 规整（官方 filePreviewUrl 同款语义）：
+   *  http(s) 完整 URL 原样；/ 开头 → getApiUrl 补 /api 前缀 + 追加 token query。 */
+  function normalizeDirectUrl(u) {
+    let s = String(u || "");
+    if (!s) return "";
+    if (/^https?:\/\//i.test(s)) return s;
+    if (s.startsWith("/")) {
+      const H = (window.QwenPaw && window.QwenPaw.host) || {};
+      try { s = typeof H.getApiUrl === "function" ? H.getApiUrl(s) : "/api" + s; } catch (e) {}
+      try {
+        const token = typeof H.getApiToken === "function"
+          ? H.getApiToken()
+          : (localStorage.getItem("qwenpaw_auth_token") || "");
+        if (token && s.indexOf("token=") < 0) {
+          s += (s.indexOf("?") >= 0 ? "&" : "?") + "token=" + encodeURIComponent(token);
+        }
+      } catch (e) {}
+      return s;
+    }
+    return s;
+  }
+
+  /** 用宿主带鉴权的 fetch 拉文件为 Blob（对齐官方 FilePreview 的拉取语义）。
+   *  ⚠️ URL 前缀：host.fetch 内部经 getApiUrl 自动补 "/api"，传参不带 /api。
+   *  host.fetch 自动注入 buildAuthHeaders()（Authorization + 当前选中 agent 的
+   *  X-Agent-Id），init.headers 可覆盖/追加。
+   *
+   *  官方行为（console/src/pages/Coding/FilePreview.tsx）：
+   *    相对路径 → GET /workspace/file-download?path=<rel>&root=project
+   *               headers 额外带 X-Chat-Id（当前会话）→ 服务端把 root=project
+   *               解析到该会话绑定的项目根，一次命中。
+   *    绝对路径 → artifactUrl / /api/files/preview/<abs> 直连。
+   *  本函数按同一语义构造候选，避免旧版"全 agent × 变体"盲遍历。 */
+  async function fetchBlob(absPath, artifactUrl, targetRoot) {
     const QP = window.QwenPaw;
     if (!QP || !QP.host || typeof QP.host.fetch !== "function") {
       throw new Error("宿主 fetch 不可用");
     }
-    const candidates = [];
-    // 候选0：artifactUrl 直连——照抄宿主原生预览逻辑（v0.7.4）：
-    // 宿主对运行中卡片就是 fetch(artifactUrl, {headers: 鉴权})，不挑前缀、不猜路径。
-    // 旧版要求 /^\/files\/preview\// 才直连，导致带 token 的可靠路径被弃用。
-    if (artifactUrl) {
-      candidates.push({ direct: String(artifactUrl), agent: "" });
-    }
     const raw = String(absPath || "");
     const p = raw.replace(/^\/+/, "");
-    // 候选0.5：/api/files/preview/<绝对路径> —— 宿主原生预览对绝对路径（含 /tmp
-    // 等工作区外文件，agent shell 临时产物）走的就是这个端点，授权边界比
-    // file-download 宽（实测可读 /tmp 文件；file-download 一律 400/403/404）。
-    // v0.8.0：此前 OFV 只走 file-download 级联，此类文件原生能看、OFV 拉不到。
-    if (raw.startsWith("/")) {
-      candidates.push({ direct: "/files/preview/" + p, agent: "" });
-    }
     const segs = p.split("/").filter(Boolean);
-    const push = (root, path, agent) => {
-      if (!path) return;
-      if (!candidates.some((c) => c.root === root && c.path === path && c.agent === agent)) {
-        candidates.push({ root, path, agent });
-      }
-    };
-    const pathAgents = [agentIdFromPath(raw)].filter(Boolean);
-    for (const ag of pathAgents) {
-      // 绝对路径 → 显式 root=project:<项目根> + 相对子路径（绕开 chat 会话绑定）
-      const projRoot = projectRootFromPath(raw);
-      const rel = projRoot ? raw.slice(projRoot.length + 1) : "";
-      if (projRoot && rel) {
-        push("project:" + projRoot, rel, ag);
-      }
-      // root=workspace：相对 workspace 根的子路径
-      const wsMark = "/workspaces/" + ag + "/";
-      const iws = raw.indexOf(wsMark);
-      if (iws >= 0) {
-        push("workspace", raw.slice(iws + wsMark.length), ag);
-      }
-      // 旧式兜底：basename → 2段 → 3段
-      const maxSeg = Math.min(segs.length, 3);
-      for (let n = 1; n <= maxSeg; n++) {
-        push("workspace", segs.slice(-n).join("/"), ag);
-        push("project", segs.slice(-n).join("/"), ag);
-      }
+    const candidates = [];
+    const chatId = currentChatId();
+    const chatHeaders = chatId ? { "X-Chat-Id": chatId } : {};
+
+    // 候选0：artifactUrl 直连——官方 binaryUrl 优先，同款行为（v0.7.4）。
+    if (artifactUrl) {
+      candidates.push({ direct: String(artifactUrl) });
     }
-    let lastErr = "";
-    const tried = new Set();
-    for (const c of candidates) {
-      const key = (c.direct ? "d" : c.root + ":" + c.path + "@" + c.agent);
-      if (tried.has(key)) continue;
-      tried.add(key);
-      try {
-        const url = c.direct
-          ? c.direct
-          : "/workspace/file-download?path=" + encodeURIComponent(c.path) + "&root=" + encodeURIComponent(c.root);
-        const init = c.agent ? { headers: { "X-Agent-Id": c.agent } } : undefined;
-        const resp = await QP.host.fetch(url, init);
-        if (resp.ok) return await resp.blob();
-        lastErr = (c.direct ? "direct" : c.root + ":" + c.path + "@" + (c.agent || "cur")) + " -> HTTP " + resp.status;
-      } catch (e) {
-        lastErr = (c.direct ? "direct" : c.root + ":" + c.path + "@" + (c.agent || "cur")) + " -> " + (e && e.message ? e.message : e);
+
+    if (!isAbsPath(raw)) {
+      // ── 相对路径：官方 FilePreview 同款，最多两条候选，不盲遍历 ──
+      // root=project + X-Chat-Id → 服务端按会话绑定项目根解析（官方主路径）
+      candidates.push({ root: targetRoot || "project", path: p, headers: chatHeaders });
+      // root=workspace → agent 自己的存储根（官方 WorkspaceRoot 的另一合法值）
+      if ((targetRoot || "project") !== "workspace") {
+        candidates.push({ root: "workspace", path: p, headers: chatHeaders });
       }
-    }
-    // 相对路径兜底（照抄宿主 Files 面板语义，v0.7.4 补 X-Chat-Id）：
-    // 宿主对 workspace 类 target 的请求头是 {鉴权, X-Chat-Id}（无 chat 时用
-    // X-Session-Project-Dir）。file-download 的 path 相对「该 chat 绑定的项目根」。
-    // 运行中卡片给的相对路径（my-pm/backend/.../Foo.java）直接原样试——它通常
-    // 就是相对当前 chat 绑定根的路径；再逐级去头兜底，basename 最后。
-    const base = segs[segs.length - 1] || "";
-    if (base && !pathAgents.length) {
-      const chatId = (() => {
-        try { return window.QwenPaw?.context?.chatId || window.QwenPaw?.chatId || ""; }
-        catch (e) { return ""; }
-      })();
-      const extraHeaders = chatId ? { "X-Chat-Id": chatId } : {};
-      const agents = [""]; // 空串 = 不带 X-Agent-Id（宿主默认当前 agent），优先
-      try { agents.push(...(await listAgentIds())); } catch (e) {}
-      const seen = new Set();
-      const relVariants = [];
-      for (let i = 0; i < segs.length; i++) relVariants.push(segs.slice(i).join("/"));
-      for (const ag of agents) {
-        for (const root of ["project", "workspace"]) {
-          for (const rel of relVariants) {
-            const key = root + ":" + rel + "@" + ag;
-            if (seen.has(key)) continue;
-            seen.add(key);
-            try {
-              const url = "/workspace/file-download?path=" + encodeURIComponent(rel) + "&root=" + root;
-              const init = ag ? { headers: { "X-Agent-Id": ag, ...extraHeaders } }
-                              : Object.keys(extraHeaders).length ? { headers: extraHeaders } : undefined;
-              const resp = await QP.host.fetch(url, init);
-              if (resp.ok) return await resp.blob();
-              lastErr = root + ":" + rel + "@" + (ag || "cur") + " -> HTTP " + resp.status;
-            } catch (e) {
-              lastErr = root + ":" + rel + "@" + (ag || "cur") + " -> " + (e && e.message ? e.message : e);
-            }
-          }
+    } else {
+      // ── 绝对路径：/api/files/preview/<abs> 直连（官方 filePreviewUrl 同款，
+      // 服务端 expanduser+resolve，受 file_guard 配置控制）。工作区外文件
+      // （如 /tmp/xxx.sql）唯一可靠路径（v0.8.0）。
+      candidates.push({ direct: "/files/preview/" + p });
+      const ag = agentIdFromPath(raw);
+      if (ag) {
+        // 绝对路径 → 显式 root=project:<项目根> + 相对子路径（绕开 chat 会话绑定）
+        const projRoot = projectRootFromPath(raw);
+        const rel = projRoot ? raw.slice(projRoot.length + 1) : "";
+        if (projRoot && rel) {
+          candidates.push({ root: "project:" + projRoot, path: rel, agent: ag, headers: chatHeaders });
+        }
+        // root=workspace：相对 workspace 根的子路径
+        const wsMark = "/workspaces/" + ag + "/";
+        const iws = raw.indexOf(wsMark);
+        if (iws >= 0) {
+          candidates.push({ root: "workspace", path: raw.slice(iws + wsMark.length), agent: ag, headers: chatHeaders });
+        }
+      } else {
+        // 无 workspaces 归属的绝对路径（如 /tmp/x.sql 且 files/preview 被关）：
+        // 保留旧式后缀兜底（basename → 2段 → 3段），不带 X-Agent-Id（当前 agent）
+        const maxSeg = Math.min(segs.length, 3);
+        for (let n = 1; n <= maxSeg; n++) {
+          candidates.push({ root: "workspace", path: segs.slice(-n).join("/"), headers: chatHeaders });
+          candidates.push({ root: "project", path: segs.slice(-n).join("/"), headers: chatHeaders });
         }
       }
     }
-    throw new Error("拉取失败（已试 " + tried.size + " 个候选）最后: " + lastErr);
+
+    let lastErr = "";
+    const tried = new Set();
+    for (const c of candidates) {
+      // ⚠️ direct 候选必须用完整 URL 做 key：artifactUrl 与 /files/preview 是
+      // 两个不同候选，旧版都用 "d" 导致第二个永远被跳过（v0.8.1 修复）
+      const key = c.direct
+        ? "d:" + c.direct
+        : c.root + ":" + c.path + "@" + (c.agent || "cur") + ":" + (c.headers && c.headers["X-Chat-Id"] ? "chat" : "plain");
+      if (tried.has(key)) continue;
+      tried.add(key);
+      try {
+        let resp;
+        if (c.direct) {
+          // 直连（artifactUrl / files/preview）：官方 FilePreview 的 binaryUrl
+          // 就是原生 fetch，不过 getApiUrl。这里同款：原生 fetch + 官方鉴权头。
+          resp = await fetch(normalizeDirectUrl(c.direct), { headers: directFetchHeaders() });
+        } else {
+          const url = "/workspace/file-download?path=" + encodeURIComponent(c.path) + "&root=" + encodeURIComponent(c.root);
+          const init = {};
+          if (c.agent) init.headers = { ...(init.headers || {}), "X-Agent-Id": c.agent };
+          if (c.headers) init.headers = { ...(init.headers || {}), ...c.headers };
+          resp = await QP.host.fetch(url, Object.keys(init).length ? init : undefined);
+        }
+        if (resp.ok) return await resp.blob();
+        lastErr = (c.direct ? "direct:" + c.direct : c.root + ":" + c.path) + " -> HTTP " + resp.status;
+        log("候选未命中:", lastErr);
+      } catch (e) {
+        lastErr = (c.direct ? "direct:" + c.direct : c.root + ":" + c.path) + " -> " + (e && e.message ? e.message : e);
+        log("候选异常:", lastErr);
+      }
+    }
+    // v0.8.2：失败也留下载出口 —— 直连 URL（artifactUrl / files/preview，带 token）
+    // 浏览器 <a download> 直接可下；file-download 类候选需要鉴权头，a 标签导航带不上。
+    const e2 = new Error("拉取失败（已试 " + tried.size + " 个候选）最后: " + lastErr);
+    e2.downloadUrls = candidates.filter((c) => c.direct).map((c) => c.direct);
+    throw e2;
   }
 
   /** 从 blob 复制纯文本到剪贴板（navigator.clipboard 不可用时退化 execCommand） */
@@ -568,7 +585,42 @@
     document.head.appendChild(st);
   }
 
-  async function openPreview(name, ext, path, artifactUrl) {
+  /** 失败面板里的"下载文件"按钮（预览失败也要能拿到文件 —— v0.8.2） */
+  function attachFailDownload(loading, opts) {
+    // opts: { url?, blob?, name }
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:10px;justify-content:center;margin-top:14px;";
+    const mk = (label, fn) => {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.style.cssText =
+        "border:1px solid #e2e8f0;background:#fff;color:#334155;height:32px;" +
+        "padding:0 14px;border-radius:6px;cursor:pointer;font-size:13px;";
+      b.onmouseenter = () => { b.style.background = "#f1f5f9"; };
+      b.onmouseleave = () => { b.style.background = "#fff"; };
+      b.onclick = (ev) => { ev.stopPropagation(); fn(); };
+      return b;
+    };
+    if (opts.url) {
+      const a = document.createElement("a");
+      a.textContent = "⬇ 下载文件";
+      a.title = "浏览器直接下载（服务端原始地址）";
+      a.href = normalizeDirectUrl(opts.url);
+      if (opts.name) a.download = opts.name;
+      a.style.cssText =
+        "display:inline-flex;align-items:center;height:32px;padding:0 14px;" +
+        "border:1px solid #e2e8f0;background:#fff;color:#334155;border-radius:6px;" +
+        "cursor:pointer;font-size:13px;text-decoration:none;";
+      a.onclick = (ev) => ev.stopPropagation();
+      row.appendChild(a);
+    }
+    if (opts.blob) {
+      row.appendChild(mk("⬇ 下载已取回的文件", () => downloadCurrent(opts.blob, opts.name)));
+    }
+    loading.appendChild(row);
+  }
+
+  async function openPreview(name, ext, path, artifactUrl, targetRoot) {
     closeOverlay();
 
     ensureUiStyle();
@@ -736,24 +788,36 @@
     document.body.appendChild(backdrop);
     overlayEl = backdrop;
     document.addEventListener("keydown", onKey);
+    const myBackdrop = backdrop;
 
     // 入场动画
     requestAnimationFrame(() => { drawer.style.transform = "translateX(0)"; });
 
     let blob;
     try {
-      blob = await fetchBlob(path, artifactUrl);
+      blob = await fetchBlob(path, artifactUrl, targetRoot);
+      // 竞态守卫：拉取期间抽屉已被关闭（Esc/点背景）或被新预览替换
+      // → 直接丢弃，避免在已脱离文档的 DOM 里幽灵渲染 + observer 泄漏
+      if (overlayEl !== myBackdrop) return;
       // ⚠️ formatSize 需要字节数而非 Blob 对象（曾传 blob 本身导致大小恒空）
       blobRef.value = blob && typeof blob.size === "number" ? blob.size : null;
       updateTitleMeta();
     } catch (e) {
-      loading.textContent = "拉取文件失败：" + (e && e.message ? e.message : e) + "（点击关闭）";
+      if (overlayEl !== myBackdrop) return;
+      loading.style.flexDirection = "column";
+      loading.textContent = "拉取文件失败：" + (e && e.message ? e.message : e);
+      // v0.8.2：预览失败也要能下载 —— 直连 URL（带 token）浏览器直接下载
+      attachFailDownload(loading, {
+        url: (e && e.downloadUrls && e.downloadUrls[0]) || "",
+        name,
+      });
       loading.onclick = closeOverlay;
       err("拉取失败", path, e);
       return;
     }
 
     try {
+      if (overlayEl !== myBackdrop) return;
       body.removeChild(loading);
       // OFV 容器需要明确高度，同时让 body 滚动条接管
       const ofvBox = document.createElement("div");
@@ -795,7 +859,11 @@
       // 接管所有下载按钮：用宿主 fetch 到的 blob 直接下载（OFV 自带下载会出空文件）
       bindDownload(drawer, blob, name);
     } catch (e) {
-      loading.textContent = "OFV 渲染失败：" + (e && e.message ? e.message : e) + "（点击关闭）";
+      if (overlayEl !== myBackdrop) return;
+      loading.style.flexDirection = "column";
+      loading.textContent = "OFV 渲染失败：" + (e && e.message ? e.message : e);
+      // v0.8.2：blob 已在手，渲染失败也提供下载
+      attachFailDownload(loading, { blob, name });
       loading.onclick = closeOverlay;
       err("OFV 渲染失败", e);
     }
@@ -813,11 +881,11 @@
   // 天然覆盖全部三个派发点（气泡附件卡/预览芯片/网格卡）与未来新增派发点。
   // ================================================================
   let _lastOpen = { path: "", ts: 0 };
-  function openPreviewDedup(name, ext, p, url) {
+  function openPreviewDedup(name, ext, p, url, targetRoot) {
     const now = Date.now();
     if (_lastOpen.path === p && now - _lastOpen.ts < 500) return; // 同一文件短窗口去重
     _lastOpen = { path: p, ts: now };
-    openPreview(name, ext, p, url);
+    openPreview(name, ext, p, url, targetRoot);
   }
 
   function installDispatchIntercept() {
@@ -835,8 +903,8 @@
           if (OFV_EXTS.has(ext)) {
             const p = normalizePath(path || url);
             if (p) {
-              log("接管预览(dispatch):", name, "(" + ext + ") path=", p);
-              openPreviewDedup(name, ext, p, url);
+              log("接管预览(dispatch):", name, "(" + ext + ") path=", p, "root=", t.root || "");
+              openPreviewDedup(name, ext, p, url, String(t.root || ""));
               return true; // 吞掉事件：宿主原生抽屉不再打开
             }
           }
@@ -874,7 +942,7 @@
 
           const p = normalizePath(path || url);
           if (!p) { err("无法归一化路径，放行"); return; }
-          openPreviewDedup(name, ext, p, url);
+          openPreviewDedup(name, ext, p, url, String(t.root || ""));
         } catch (e2) {
           err("接管失败:", e2);
         }
@@ -898,7 +966,6 @@
   // "V1.0.docx" 丢失目录 → 候选全 404。需 u flag 才支持 \p。
   const CH = "\\p{L}\\p{N}@.\\-_%";
   let _nameRe = null;
-  let _pathRe = null;
   function nameRe() {
     if (!_nameRe) _nameRe = OFV_EXTS.size ? new RegExp(
       "([" + CH + "]+\\.(" + [...OFV_EXTS].join("|") + "))(?![" + CH + "\\w-])",
@@ -906,80 +973,63 @@
     ) : /$^/; // 全放行时永不匹配
     return _nameRe;
   }
-  function pathRe() {
-    // 段内不含空格（防同行多文件贪婪吞并）；带空格路径经 title 快路径直取
-    if (!_pathRe) _pathRe = OFV_EXTS.size ? new RegExp(
-      "(\\/?[" + CH + "]+(?:\\/[\\p{L}\\p{N}@.\\-_%~+()（）\\[\\]]+)*\\.(" + [...OFV_EXTS].join("|") + "))(?![" + CH + "\\w-])",
-      "iu"
-    ) : /$^/;
-    return _pathRe;
-  }
-
-  /** 快路径：title/aria-label 本身就是纯路径时直接取，避免正则歧义。
-   *  兼容 aria-label 的「文件名 + 空格 + 完整路径」混合形态：从首个 "/" 起截取。 */
-  function directPathFromLabel(labeled) {
-    let s = String(labeled || "").trim();
-    if (!s) return "";
-    try { s = decodeURIComponent(s).replace(/\\/g, "/"); } catch (e) {}
-    const i = s.indexOf("/");
-    if (i >= 0) s = s.slice(i); // 丢掉路径前的文件名前缀（aria-label 形态）
-    const ext = getExt(s);
-    if (!ext || !OFV_EXTS.has(ext)) return "";
-    return s;
+    /** 从卡片 DOM / React fiber 提取文件 URL（即官方 artifactUrl）。
+   *  气泡卡 FileCard 的 url 不一定落在 DOM 属性上，补 fiber props 挖掘。
+   *  拿不到返回 ""。 */
+  function extractArtifactUrl(card) {
+    try {
+      const el = card.querySelector(
+        "a[href], img[src], video[src], audio[src], source[src], [data-url]"
+      );
+      if (el) {
+        const u = el.getAttribute("href") || el.getAttribute("src")
+          || el.getAttribute("data-url") || "";
+        if (u && !u.startsWith("#") && !/^javascript:/i.test(u)) return u;
+      }
+    } catch (e) {}
+    try {
+      const fk = Object.keys(card).find(
+        (k) => k.startsWith("__reactFiber$") || k.startsWith("__reactInternalInstance$")
+      );
+      let fiber = fk ? card[fk] : null;
+      for (let i = 0; fiber && i < 14; i++, fiber = fiber.return) {
+        const props = fiber && fiber.memoizedProps;
+        if (!props || typeof props !== "object") continue;
+        const cand = props.url
+          || (props.item && props.item.url)
+          || (props.data && props.data.url)
+          || (props.media && props.media.url);
+        if (typeof cand === "string" && cand && !cand.startsWith("#")
+            && !/^javascript:/i.test(cand)) return cand;
+      }
+    } catch (e) {}
+    return "";
   }
 
   function tryTakeOverFromCard(card, ev) {
     if (!card) return false;
-    // 从卡片 DOM 提取文件名：优先 title/aria-label（网格卡 title=完整路径），退化用文本
-    const labeled =
-      card.getAttribute("title") ||
-      card.getAttribute("aria-label") ||
-      card.getAttribute("data-path") ||
-      "";
-    // 快路径：title 本身是纯接管路径（网格卡形态）→ 直接取，绕开文本正则歧义
-    const direct = directPathFromLabel(labeled);
-    const text = (card.textContent || "").replace(/\s+/g, " ").trim();
-    const hay = (labeled + " " + text).trim();
-    // 匹配带扩展名的文件名（支持 URL 编码的中文）
-    let decoded = hay;
-    try {
-      const d = decodeURIComponent(hay);
-      if (d.indexOf("\uFFFD") === -1) decoded = d;
-    } catch (e) {}
-    const m = nameRe().exec(direct || decoded);
-    if (!m) return false;
-    const name = getBaseName(m[1]);
+    // 只认卡片上的真实文件 URL（官方 artifactUrl 同源），拿到才接管。
+    // 拿不到 URL 线索一律放行：2.3.0 气泡卡/网格卡/预览芯片点击都会派发
+    // qwenpaw:open-file-preview（target 由宿主构造，带权威 artifactUrl/path/root），
+    // 由 dispatch 拦截接管。旧版从文本正则猜路径不可靠（zip 卡 7 候选全 404 即教训）。
+    const url = extractArtifactUrl(card);
+    if (!url) return false;
+    let name = getBaseName(String(url).split("?")[0].split("#")[0]);
+    if (!name || name.indexOf(".") < 0) {
+      const labeled = card.getAttribute("title") || card.getAttribute("aria-label") || "";
+      const text = (card.textContent || "").replace(/\s+/g, " ").trim();
+      const m = nameRe().exec((labeled + " " + text).trim());
+      name = (m && m[1]) || name || "file";
+    }
     const ext = getExt(name);
     if (!OFV_EXTS.has(ext)) return false;
-
-    // 提取路径：快路径 > title/文本正则 > basename 兜底
-    let rawPath = direct || "";
-    if (!rawPath) {
-      const pathMatch = pathRe().exec(decoded);
-      if (pathMatch) {
-        rawPath = pathMatch[1];
-        if (!rawPath.startsWith("/")) rawPath = "/" + rawPath;
-      } else {
-        rawPath = name; // basename 兜底（fetchBlob 有 workspace 根 basename 候选）
-      }
-    }
-    // 卡片内若有带 /files/preview/ 的链接/img，优先取其真实路径
-    try {
-      const el = card.querySelector('a[href*="/files/preview/"], img[src*="/files/preview/"]');
-      const href = el ? (el.getAttribute("href") || el.getAttribute("src") || "") : "";
-      const fromUrl = pathFromPreviewUrl(href);
-      if (fromUrl) rawPath = fromUrl;
-    } catch (e2) {}
-
-    const p = normalizePath(rawPath);
-    if (!p) return false;
     if (ev) {
       ev.preventDefault();
       ev.stopPropagation();
       try { ev.stopImmediatePropagation(); } catch (e3) {}
     }
-    log("接管预览(DOM):", name, "(" + ext + ") path=", p);
-    openPreviewDedup(name, ext, p, "");
+    log("接管预览(DOM):", name, "(" + ext + ") url=", url);
+    openPreviewDedup(name, ext, name, url, "");
     return true;
   }
 
