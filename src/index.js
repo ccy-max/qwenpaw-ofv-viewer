@@ -13,7 +13,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.8.2";
+  const VERSION = "0.8.3";
   const TAG = "[ofv-viewer]";
   const PLUGIN_ID = "qwenpaw-ofv-viewer";
 
@@ -170,6 +170,21 @@
     return s.startsWith("/") || s.startsWith("~") || /^[a-z]:\//i.test(s);
   }
 
+  /** 相对路径确定性归一化：逐段消解 "." 与 ".."（如
+   *  "../model-gateway/src/a.go" → "model-gateway/src/a.go"，对应
+   *  "agent shell cwd 是项目根的直接子目录"这一确定情形）。
+   *  这不是多候选兜底：归一化结果唯一，之后只走官方 file-download 链路，
+   *  失败即明示失败。 */
+  function collapseDotSegments(p) {
+    const out = [];
+    for (const seg of String(p || "").split("/")) {
+      if (seg === "..") out.pop();
+      else if (seg === "." || seg === "") continue;
+      else out.push(seg);
+    }
+    return out.join("/");
+  }
+
   /** 官方 buildAuthHeaders 等价（console/src/api/authHeaders.ts）：
    *  Authorization Bearer + X-Agent-Id（agent-storage 里的选中 agent）。 */
   function directFetchHeaders() {
@@ -242,12 +257,19 @@
     }
 
     if (!isAbsPath(raw)) {
-      // ── 相对路径：官方 FilePreview 同款，最多两条候选，不盲遍历 ──
+      // ── 相对路径：官方 FilePreview 同款链路，不盲遍历 ──
+      // 含 "./.." 段的脏路径（工具相对 cwd 的写法）先做确定性归一化
+      let rel = p;
+      if (rel.split("/").some((s) => s === "." || s === "..")) {
+        const collapsed = collapseDotSegments(rel);
+        log("相对路径归一化:", rel, "->", collapsed);
+        rel = collapsed;
+      }
       // root=project + X-Chat-Id → 服务端按会话绑定项目根解析（官方主路径）
-      candidates.push({ root: targetRoot || "project", path: p, headers: chatHeaders });
+      candidates.push({ root: targetRoot || "project", path: rel, headers: chatHeaders });
       // root=workspace → agent 自己的存储根（官方 WorkspaceRoot 的另一合法值）
       if ((targetRoot || "project") !== "workspace") {
-        candidates.push({ root: "workspace", path: p, headers: chatHeaders });
+        candidates.push({ root: "workspace", path: rel, headers: chatHeaders });
       }
     } else {
       // ── 绝对路径：/api/files/preview/<abs> 直连（官方 filePreviewUrl 同款，
@@ -279,7 +301,7 @@
       }
     }
 
-    let lastErr = "";
+    const attempts = [];
     const tried = new Set();
     for (const c of candidates) {
       // ⚠️ direct 候选必须用完整 URL 做 key：artifactUrl 与 /files/preview 是
@@ -289,6 +311,7 @@
         : c.root + ":" + c.path + "@" + (c.agent || "cur") + ":" + (c.headers && c.headers["X-Chat-Id"] ? "chat" : "plain");
       if (tried.has(key)) continue;
       tried.add(key);
+      const label = c.direct ? "direct:" + c.direct : c.root + ":" + c.path;
       try {
         let resp;
         if (c.direct) {
@@ -303,16 +326,20 @@
           resp = await QP.host.fetch(url, Object.keys(init).length ? init : undefined);
         }
         if (resp.ok) return await resp.blob();
-        lastErr = (c.direct ? "direct:" + c.direct : c.root + ":" + c.path) + " -> HTTP " + resp.status;
-        log("候选未命中:", lastErr);
+        attempts.push(label + " -> HTTP " + resp.status);
+        log("链路未命中:", label, "HTTP", resp.status);
       } catch (e) {
-        lastErr = (c.direct ? "direct:" + c.direct : c.root + ":" + c.path) + " -> " + (e && e.message ? e.message : e);
-        log("候选异常:", lastErr);
+        attempts.push(label + " -> " + (e && e.message ? e.message : e));
+        log("链路异常:", label, e);
       }
     }
-    // v0.8.2：失败也留下载出口 —— 直连 URL（artifactUrl / files/preview，带 token）
+    // v0.8.2/0.8.3：无静默兜底 —— 每次尝试都打日志，失败信息带完整清单，
+    // 任何环境都能直接定位是哪条链路、什么状态码。
+    // 失败也留下载出口：直连 URL（artifactUrl / files/preview，带 token）
     // 浏览器 <a download> 直接可下；file-download 类候选需要鉴权头，a 标签导航带不上。
-    const e2 = new Error("拉取失败（已试 " + tried.size + " 个候选）最后: " + lastErr);
+    const e2 = new Error(
+      "官方链路 " + tried.size + " 条均未命中 [" + attempts.join(" | ") + "]"
+    );
     e2.downloadUrls = candidates.filter((c) => c.direct).map((c) => c.direct);
     throw e2;
   }
